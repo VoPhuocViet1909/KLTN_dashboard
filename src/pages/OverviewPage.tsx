@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { ScoreTrend } from '@/components/charts/ScoreTrend'
+import { Fact } from '@/components/Fact'
 import { PlumbLine } from '@/components/PlumbLine'
 import { StateBadge } from '@/components/StateBadge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -111,16 +112,6 @@ export function OverviewPage() {
           {s ? <AlertBreakdown alerts={s.alerts} /> : <Skeleton className="h-20 w-full" />}
         </div>
       </section>
-    </div>
-  )
-}
-
-function Fact({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="tabular mt-1 text-xl font-semibold">{value}</dd>
-      {hint && <dd className="text-xs leading-snug text-muted-foreground">{hint}</dd>}
     </div>
   )
 }

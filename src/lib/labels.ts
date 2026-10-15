@@ -1,4 +1,5 @@
 import { CircleCheck, CircleOff, Moon, TriangleAlert, type LucideIcon } from 'lucide-react'
+import type { Role } from '@/lib/api/types'
 import type { DeviceState } from '@/realtime/socket'
 
 /** Tên hiển thị của loại cảnh báo (alertType từ App). Loại lạ thì hiện nguyên mã. */
@@ -49,3 +50,14 @@ export const STATE_META: Record<DeviceState, { label: string; icon: LucideIcon; 
   AWAY: { label: 'Vắng mặt', icon: Moon, colorVar: 'var(--status-away)' },
   OFFLINE: { label: 'Không kết nối', icon: CircleOff, colorVar: 'var(--status-offline)' },
 }
+
+export const ROLE_LABEL: Record<Role, string> = {
+  USER: 'Nhân viên',
+  ORG_ADMIN: 'Quản lý tổ chức',
+  SYS_ADMIN: 'Quản trị hệ thống',
+}
+
+export const roleLabel = (r: string | null | undefined) => (r ? (ROLE_LABEL[r as Role] ?? r) : '—')
+
+/** Vai trò mà ORG_ADMIN được gán (không gán được SYS_ADMIN). */
+export const ORG_ASSIGNABLE_ROLES: Role[] = ['USER', 'ORG_ADMIN']

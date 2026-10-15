@@ -5,6 +5,8 @@ import { HabitsPage } from '@/pages/HabitsPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage, Placeholder } from '@/pages/misc'
+import { OrgOverviewPage } from '@/pages/OrgOverviewPage'
+import { OrgUsersPage } from '@/pages/OrgUsersPage'
 import { OverviewPage } from '@/pages/OverviewPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -23,14 +25,8 @@ export function AppRoutes() {
 
           {/* Tổ chức – ORG_ADMIN */}
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>
-            <Route
-              path="org"
-              element={<Placeholder title="Tổng quan tổ chức" apis={['GET /stats/org/summary', 'GET /alerts/org']} />}
-            />
-            <Route
-              path="org/users"
-              element={<Placeholder title="Nhân viên" apis={['GET/POST /users', 'PATCH /users/{id}/role', 'PATCH /users/{id}/status']} />}
-            />
+            <Route path="org" element={<OrgOverviewPage />} />
+            <Route path="org/users" element={<OrgUsersPage />} />
             <Route
               path="org/departments"
               element={<Placeholder title="Phòng ban" apis={['GET/POST /organizations/{id}/departments']} />}

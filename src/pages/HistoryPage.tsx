@@ -1,18 +1,10 @@
 import { useSearchParams } from 'react-router'
+import { PagedTable } from '@/components/PagedTable'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TableCell, TableHead, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  HISTORY_PAGE_SIZE,
-  useMyAlerts,
-  useMySessions,
-  type AlertItem,
-  type Paged,
-  type SessionItem,
-} from '@/lib/api/alerts'
+import { useMyAlerts, useMySessions, type AlertItem, type SessionItem } from '@/lib/api/alerts'
 import { ALERT_LABEL, alertEndLabel, alertLabel, severityLabel, sessionEndLabel } from '@/lib/labels'
 import { formatDateTime, formatDuration } from '@/lib/time'
 
@@ -115,11 +107,12 @@ function AlertsPanel({
 }) {
   const q = useMyAlerts(days, alertType, page)
   return (
-    <HistoryTable
+    <PagedTable
       query={q}
       page={page}
       onPage={onPage}
       emptyText="Không có cảnh báo nào trong khoảng này."
+      errorLabel="Không tải được lịch sử"
       header={
         <TableRow>
           <TableHead>Bắt đầu</TableHead>
@@ -158,11 +151,12 @@ function sessionSeconds(s: SessionItem) {
 function SessionsPanel({ days, page, onPage }: { days: number; page: number; onPage: (page: number) => void }) {
   const q = useMySessions(days, page)
   return (
-    <HistoryTable
+    <PagedTable
       query={q}
       page={page}
       onPage={onPage}
       emptyText="Không có phiên làm việc nào trong khoảng này."
+      errorLabel="Không tải được lịch sử"
       header={
         <TableRow>
           <TableHead>Thiết bị</TableHead>
@@ -186,88 +180,5 @@ function SessionsPanel({ days, page, onPage }: { days: number; page: number; onP
         </TableRow>
       )}
     />
-  )
-}
-
-// ---------- Bảng + trạng thái + phân trang dùng chung ----------
-
-interface QueryLike<T> {
-  data: Paged<T> | undefined
-  error: Error | null
-  isPending: boolean
-  isPlaceholderData: boolean
-}
-
-function HistoryTable<T>({
-  query,
-  page,
-  onPage,
-  header,
-  row,
-  emptyText,
-}: {
-  query: QueryLike<T>
-  page: number
-  onPage: (page: number) => void
-  header: React.ReactNode
-  row: (item: T) => React.ReactNode
-  emptyText: string
-}) {
-  const { data, error, isPending, isPlaceholderData } = query
-
-  if (isPending) {
-    return (
-      <div className="space-y-2 rounded-xl border bg-background p-4">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-9 w-full" />
-        ))}
-      </div>
-    )
-  }
-  if (error) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <p role="alert" className="text-sm text-destructive">
-          Không tải được lịch sử: {error.message}
-        </p>
-      </div>
-    )
-  }
-  if (!data || data.items.length === 0) {
-    return (
-      <div className="rounded-xl border bg-background p-6">
-        <p className="py-10 text-center text-sm text-muted-foreground">{emptyText}</p>
-      </div>
-    )
-  }
-
-  const pages = Math.max(1, Math.ceil(data.total / (data.size || HISTORY_PAGE_SIZE)))
-  return (
-    <div className="rounded-xl border bg-background">
-      <div className={`transition-opacity ${isPlaceholderData ? 'opacity-60' : ''}`}>
-        <Table className="[&_tr>*:first-child]:pl-4 [&_tr>*:last-child]:pr-4">
-          <TableHeader>{header}</TableHeader>
-          <TableBody>{data.items.map(row)}</TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-between gap-4 border-t px-4 py-3">
-        <p className="tabular text-sm text-muted-foreground" aria-live="polite">
-          Trang {page + 1} / {pages} · tổng {data.total.toLocaleString('vi-VN')}
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled={page <= 0 || isPlaceholderData} onClick={() => onPage(page - 1)}>
-            Trước
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page + 1 >= pages || isPlaceholderData}
-            onClick={() => onPage(page + 1)}
-          >
-            Sau
-          </Button>
-        </div>
-      </div>
-    </div>
   )
 }
