@@ -5,6 +5,7 @@ import { PlumbLine } from '@/components/PlumbLine'
 import { Button } from '@/components/ui/button'
 import { hasRole, useAuth } from '@/auth/context'
 import type { Role } from '@/lib/api/types'
+import { ROLE_LABEL } from '@/lib/labels'
 import { useRealtimeConnected } from '@/realtime/hooks'
 
 interface NavItem {
@@ -50,12 +51,6 @@ const NAV: NavGroup[] = [
     ],
   },
 ]
-
-const ROLE_LABEL: Record<Role, string> = {
-  USER: 'Nhân viên',
-  ORG_ADMIN: 'Quản lý tổ chức',
-  SYS_ADMIN: 'Quản trị hệ thống',
-}
 
 export function AppLayout() {
   const { user, logout } = useAuth()
