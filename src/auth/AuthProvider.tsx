@@ -12,6 +12,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [user, setUser] = useState<SessionUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
+  const [loggedOut, setLoggedOut] = useState(false)
 
   const reset = useCallback(() => {
     disconnectRealtime()
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStore.setUser(res.user)
     setUser(res.user)
     setStatus('authenticated')
+    setLoggedOut(false)
     return res.user
   }, [])
 
@@ -72,9 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     tokenStore.clear()
+    setLoggedOut(true)
     reset()
   }, [reset])
 
-  const value = useMemo(() => ({ user, status, login, logout }), [user, status, login, logout])
+  const value = useMemo(
+    () => ({ user, status, loggedOut, login, logout }),
+    [user, status, loggedOut, login, logout],
+  )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

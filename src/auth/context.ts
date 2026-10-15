@@ -6,6 +6,8 @@ export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 export interface AuthContextValue {
   user: SessionUser | null
   status: AuthStatus
+  /** true khi người dùng tự bấm đăng xuất (khác với phiên hết hạn): đăng nhập lại thì không quay về trang cũ */
+  loggedOut: boolean
   login: (email: string, password: string) => Promise<SessionUser>
   logout: () => Promise<void>
 }
