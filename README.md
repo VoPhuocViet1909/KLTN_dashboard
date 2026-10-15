@@ -46,6 +46,7 @@ nên console có vài lỗi 404 và góc trên hiện "Mất kết nối realtim
 | `src/pages/` | các trang |
 | `src/components/` | `PlumbLine` (thước dọi), `StateBadge`, `charts/`, `ui/` (shadcn – không sửa tay) |
 | `src/lib/labels.ts` | tên loại cảnh báo, nhãn/icon/màu trạng thái |
+| `src/lib/configFields.ts` | các khóa cấu hình người dùng được sửa: nhãn, đơn vị, min/max (theo `config.schema.json`), mặc định (theo `app_config.py`) |
 | `.agents/skills/design-system/SKILL.md` | **luật giao diện** – đọc trước khi làm màn hình |
 
 ## Kế hoạch
@@ -54,7 +55,7 @@ nên console có vài lỗi 404 và góc trên hiện "Mất kết nối realtim
 | --- | --- | --- |
 | 1. Nền | khung, proxy, đăng nhập/refresh, lỗi, menu theo role, Socket.IO | ✅ |
 | 0. Thiết kế | shadcn/ui (Radix, Nova), font Be Vietnam Pro, file `.agents/skills/design-system/SKILL.md` | ✅ |
-| 2. Cá nhân | ✅ Tổng quan (thước dọi realtime, điểm, biểu đồ theo ngày, cảnh báo theo loại) · ✅ Thói quen (heatmap thứ × giờ, khung giờ kém/tốt nhất) · ✅ Lịch sử cảnh báo (bảng cảnh báo + bảng phiên, lọc khoảng/loại, phân trang, giữ bộ lọc trong URL) · ⬜ Cấu hình | 🟡 |
+| 2. Cá nhân | ✅ Tổng quan (thước dọi realtime, điểm, biểu đồ theo ngày, cảnh báo theo loại) · ✅ Thói quen (heatmap thứ × giờ, khung giờ kém/tốt nhất) · ✅ Lịch sử cảnh báo (bảng cảnh báo + bảng phiên, lọc khoảng/loại, phân trang, giữ bộ lọc trong URL) · ✅ Cấu hình (mỗi ô Mặc định/Tùy chỉnh, kiểm cặp ngưỡng, nhận sự kiện `config`, cảnh báo khi rời trang chưa lưu) | ✅ |
 | 3. Tổ chức | thống kê tổ chức, nhân viên, phòng ban, cấu hình tổ chức | ⬜ |
 | 4. Quản trị | tổ chức, người dùng | ⬜ |
 | 5. Hoàn thiện | Playwright, Docker + nginx, CORS/domain chung khi deploy | ⬜ |
