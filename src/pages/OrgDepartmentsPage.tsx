@@ -1,12 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth/context'
+import { NameCreateForm } from '@/components/NameCreateForm'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toApiError } from '@/lib/api/errors'
@@ -17,8 +16,6 @@ import {
   useSetDepartmentStatus,
   type Department,
 } from '@/lib/api/org'
-
-const NAME_MAX = 160
 
 export function OrgDepartmentsPage() {
   const { user } = useAuth()
@@ -32,8 +29,6 @@ function OrgDepartments({ orgId }: { orgId: string }) {
   const create = useCreateDepartment(orgId)
   const setStatus = useSetDepartmentStatus(orgId)
 
-  const [name, setName] = useState('')
-  const [nameError, setNameError] = useState<string | null>(null)
   const [stopTarget, setStopTarget] = useState<Department | null>(null)
 
   // Đang dùng trước, sau đó theo tên (có dấu tiếng Việt).
@@ -45,27 +40,20 @@ function OrgDepartments({ orgId }: { orgId: string }) {
     [departments.data],
   )
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const value = name.trim()
-    if (value.length === 0) return setNameError('Nhập tên phòng ban.')
-    if (value.length > NAME_MAX) return setNameError(`Tên phòng ban tối đa ${NAME_MAX} ký tự.`)
-    setNameError(null)
-    create.mutate(value, {
-      onSuccess: () => {
-        setName('')
-        toast.success('Đã thêm phòng ban.')
-      },
-      onError: (e) => {
-        const err = toApiError(e)
-        if (err.code === 'NAME_TAKEN') setNameError('Đã có phòng ban tên này.')
-        else if (err.code === 'ORGANIZATION_INACTIVE') {
-          setNameError('Tổ chức đang ngừng hoạt động, không thêm được phòng ban.')
-        } else if (err.code === 'VALIDATION_FAILED' && err.fieldErrors.name) {
-          setNameError(`Tên phòng ban không hợp lệ (${err.fieldErrors.name}).`)
-        } else setNameError(err.message)
-      },
-    })
+  async function addDepartment(name: string): Promise<string | null> {
+    try {
+      await create.mutateAsync(name)
+      toast.success('Đã thêm phòng ban.')
+      return null
+    } catch (e) {
+      const err = toApiError(e)
+      if (err.code === 'NAME_TAKEN') return 'Đã có phòng ban tên này.'
+      if (err.code === 'ORGANIZATION_INACTIVE') return 'Tổ chức đang ngừng hoạt động, không thêm được phòng ban.'
+      if (err.code === 'VALIDATION_FAILED' && err.fieldErrors.name) {
+        return `Tên phòng ban không hợp lệ (${err.fieldErrors.name}).`
+      }
+      return err.message
+    }
   }
 
   function changeStatus(d: Department, active: boolean) {
@@ -95,31 +83,13 @@ function OrgDepartments({ orgId }: { orgId: string }) {
       </div>
 
       <section className="rounded-xl border bg-background">
-        <form onSubmit={onSubmit} noValidate className="space-y-1.5 border-b p-4">
-          <Label htmlFor="new-department">Tên phòng ban mới</Label>
-          <div className="flex flex-wrap items-start gap-2">
-            <Input
-              id="new-department"
-              className="max-w-sm"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value)
-                setNameError(null)
-              }}
-              aria-invalid={!!nameError}
-              aria-describedby={nameError ? 'new-department-error' : undefined}
-              autoComplete="off"
-            />
-            <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Đang thêm…' : 'Thêm phòng ban'}
-            </Button>
-          </div>
-          {nameError && (
-            <p id="new-department-error" role="alert" className="text-sm text-destructive">
-              {nameError}
-            </p>
-          )}
-        </form>
+        <NameCreateForm
+          id="new-department"
+          label="Tên phòng ban mới"
+          noun="phòng ban"
+          submitLabel="Thêm phòng ban"
+          onSubmit={addDepartment}
+        />
 
         {departments.isPending ? (
           <div className="space-y-2 p-4">

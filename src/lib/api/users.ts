@@ -61,9 +61,9 @@ export interface NewUser {
   password: string
   role: Role
   name?: string
+  /** chỉ SYS_ADMIN gửi; với ORG_ADMIN backend tự gán tổ chức của họ nên không gửi */
+  orgId?: string | null
 }
-
-// orgId do backend tự gán cho ORG_ADMIN, nên không gửi.
 export function useCreateUser() {
   const qc = useQueryClient()
   return useMutation({

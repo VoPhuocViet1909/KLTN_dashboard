@@ -1,10 +1,12 @@
 import { Route, Routes } from 'react-router'
 import { RequireAuth } from '@/auth/RequireAuth'
 import { AppLayout } from '@/layouts/AppLayout'
+import { AdminOrganizationsPage } from '@/pages/AdminOrganizationsPage'
+import { AdminUsersPage } from '@/pages/AdminUsersPage'
 import { HabitsPage } from '@/pages/HabitsPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
-import { ForbiddenPage, NotFoundPage, Placeholder } from '@/pages/misc'
+import { ForbiddenPage, NotFoundPage } from '@/pages/misc'
 import { OrgDepartmentsPage } from '@/pages/OrgDepartmentsPage'
 import { OrgOverviewPage } from '@/pages/OrgOverviewPage'
 import { OrgSettingsPage } from '@/pages/OrgSettingsPage'
@@ -35,11 +37,8 @@ export function AppRoutes() {
 
           {/* Quản trị hệ thống – SYS_ADMIN */}
           <Route element={<RequireAuth roles={['SYS_ADMIN']} />}>
-            <Route
-              path="admin/organizations"
-              element={<Placeholder title="Tổ chức" apis={['GET/POST /organizations', 'PATCH /organizations/{id}/status']} />}
-            />
-            <Route path="admin/users" element={<Placeholder title="Người dùng" apis={['GET/POST /users']} />} />
+            <Route path="admin/organizations" element={<AdminOrganizationsPage />} />
+            <Route path="admin/users" element={<AdminUsersPage />} />
           </Route>
 
           <Route path="403" element={<ForbiddenPage />} />
