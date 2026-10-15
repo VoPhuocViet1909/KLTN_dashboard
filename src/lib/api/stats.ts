@@ -35,3 +35,19 @@ export function useMyTimeseries(days: number, bucket: 'hour' | 'day' = 'day') {
       request<Bucket[]>({ url: '/stats/me/timeseries', params: { ...lastDays(days), bucket } }),
   })
 }
+
+export interface HeatmapCell {
+  /** 1 = Thứ Hai … 7 = Chủ Nhật, theo giờ Việt Nam */
+  weekday: number
+  /** 0–23, giờ Việt Nam */
+  hour: number
+  meanScore: number | null
+}
+
+/** Luôn đúng 168 ô (7 × 24). `weeks` 1–12. */
+export function useMyHeatmap(weeks: number) {
+  return useQuery({
+    queryKey: ['stats', 'me', 'heatmap', weeks],
+    queryFn: () => request<HeatmapCell[]>({ url: '/stats/me/heatmap', params: { weeks } }),
+  })
+}

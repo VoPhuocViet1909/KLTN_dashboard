@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 import { RequireAuth } from '@/auth/RequireAuth'
 import { AppLayout } from '@/layouts/AppLayout'
+import { HabitsPage } from '@/pages/HabitsPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage, Placeholder } from '@/pages/misc'
 import { OverviewPage } from '@/pages/OverviewPage'
@@ -14,7 +15,7 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           {/* Cá nhân – mọi role */}
           <Route index element={<OverviewPage />} />
-          <Route path="habits" element={<Placeholder title="Thói quen" apis={['GET /stats/me/heatmap?weeks=']} />} />
+          <Route path="habits" element={<HabitsPage />} />
           <Route
             path="history"
             element={<Placeholder title="Lịch sử cảnh báo" apis={['GET /alerts/me', 'GET /alerts/me/sessions']} />}
