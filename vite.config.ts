@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const target = env.VITE_PROXY_TARGET || 'http://127.0.0.1:8080'
   return {
     plugins: [react(), tailwindcss()],
-    resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+    resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
     server: {
       port: 5173,
       strictPort: true,
