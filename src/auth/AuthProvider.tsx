@@ -65,6 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    // Đặt cờ trước khi gọi server: nếu "hết phiên" kích hoạt trong lúc chờ (vd. Socket.IO refresh thất bại sau khi
+    // refresh token bị thu hồi), RequireAuth vẫn biết đây là đăng xuất chủ động.
+    setLoggedOut(true)
     const refreshToken = tokenStore.getRefreshToken()
     if (refreshToken) {
       try {
@@ -74,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     tokenStore.clear()
-    setLoggedOut(true)
     reset()
   }, [reset])
 
