@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# skill cài riêng trên máy
+.claude/skills/ui-ux-pro-max/
