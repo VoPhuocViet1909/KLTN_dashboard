@@ -1,1 +1,118 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+    --color-status-good: var(--status-good);
+    --color-status-bad: var(--status-bad);
+    --color-status-away: var(--status-away);
+    --color-status-offline: var(--status-offline);
+    --color-surface: var(--surface);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* Design system KLTN – xem .agents/skills/design-system/SKILL.md */
+    --surface: #f4f5f3;            /* nền ứng dụng */
+    --background: #ffffff;         /* nền panel */
+    --foreground: #1c2433;         /* mực chính */
+    --card: #ffffff;
+    --card-foreground: #1c2433;
+    --popover: #ffffff;
+    --popover-foreground: #1c2433;
+    --primary: #256abf;            /* xanh lam chính, cùng họ với biểu đồ */
+    --primary-foreground: #ffffff;
+    --secondary: #eef1f6;
+    --secondary-foreground: #1c2433;
+    --muted: #eef0ec;
+    --muted-foreground: #5b6472;
+    --accent: #e8eef8;
+    --accent-foreground: #1c2433;
+    --destructive: #d03b3b;
+    --border: #e1e4df;
+    --input: #d5d9d3;
+    --ring: #2a78d6;
+    --chart-1: #2a78d6;
+    --chart-2: #86b6ef;
+    --chart-3: #1c5cab;
+    --chart-4: #cde2fb;
+    --chart-5: #104281;
+    --radius: 0.5rem;
+    --status-good: #0ca30c;
+    --status-bad: #d03b3b;
+    --status-away: #c98500;
+    --status-offline: #8a8f98;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #1c2433;
+    --sidebar-primary: #256abf;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e8eef8;
+    --sidebar-accent-foreground: #1c2433;
+    --sidebar-border: #e1e4df;
+    --sidebar-ring: #2a78d6;
+}
+
+/* Dark mode: chưa làm. Khi làm, chọn lại từng bước màu cho nền tối (xem design-system mục 1). */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    background: var(--surface);
+    }
+  button:not(:disabled), [role="button"], [role="tab"], a[href] {
+    cursor: pointer;
+    }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+    }
+}

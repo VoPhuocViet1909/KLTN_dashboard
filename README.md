@@ -44,14 +44,17 @@ nên console có vài lỗi 404 và góc trên hiện "Mất kết nối realtim
 | `src/layouts/AppLayout.tsx` | khung trang, menu theo role |
 | `src/routes.tsx` | danh sách trang; trang chưa làm là `Placeholder` ghi API sẽ dùng |
 | `src/pages/` | các trang |
+| `src/components/` | `PlumbLine` (thước dọi), `StateBadge`, `charts/`, `ui/` (shadcn – không sửa tay) |
+| `src/lib/labels.ts` | tên loại cảnh báo, nhãn/icon/màu trạng thái |
+| `.agents/skills/design-system/SKILL.md` | **luật giao diện** – đọc trước khi làm màn hình |
 
 ## Kế hoạch
 
 | Giai đoạn | Nội dung | Trạng thái |
 | --- | --- | --- |
 | 1. Nền | khung, proxy, đăng nhập/refresh, lỗi, menu theo role, Socket.IO | ✅ |
-| 0. Thiết kế | chọn phong cách (UI UX Pro Max) → file design system (typeui), `npx shadcn@latest init` | ⬜ |
-| 2. Cá nhân | Tổng quan + biểu đồ, Thói quen (heatmap), Lịch sử, Cấu hình, trạng thái realtime | ⬜ |
+| 0. Thiết kế | shadcn/ui (Radix, Nova), font Be Vietnam Pro, file `.agents/skills/design-system/SKILL.md` | ✅ |
+| 2. Cá nhân | ✅ Tổng quan (thước dọi realtime, điểm, biểu đồ theo ngày, cảnh báo theo loại) · ⬜ Thói quen (heatmap), Lịch sử, Cấu hình | 🟡 |
 | 3. Tổ chức | thống kê tổ chức, nhân viên, phòng ban, cấu hình tổ chức | ⬜ |
 | 4. Quản trị | tổ chức, người dùng | ⬜ |
 | 5. Hoàn thiện | Playwright, Docker + nginx, CORS/domain chung khi deploy | ⬜ |
