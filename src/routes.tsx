@@ -5,7 +5,9 @@ import { HabitsPage } from '@/pages/HabitsPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage, Placeholder } from '@/pages/misc'
+import { OrgDepartmentsPage } from '@/pages/OrgDepartmentsPage'
 import { OrgOverviewPage } from '@/pages/OrgOverviewPage'
+import { OrgSettingsPage } from '@/pages/OrgSettingsPage'
 import { OrgUsersPage } from '@/pages/OrgUsersPage'
 import { OverviewPage } from '@/pages/OverviewPage'
 import { SettingsPage } from '@/pages/SettingsPage'
@@ -27,14 +29,8 @@ export function AppRoutes() {
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>
             <Route path="org" element={<OrgOverviewPage />} />
             <Route path="org/users" element={<OrgUsersPage />} />
-            <Route
-              path="org/departments"
-              element={<Placeholder title="Phòng ban" apis={['GET/POST /organizations/{id}/departments']} />}
-            />
-            <Route
-              path="org/settings"
-              element={<Placeholder title="Cấu hình tổ chức" apis={['GET /config/org', 'PUT /config/org']} />}
-            />
+            <Route path="org/departments" element={<OrgDepartmentsPage />} />
+            <Route path="org/settings" element={<OrgSettingsPage />} />
           </Route>
 
           {/* Quản trị hệ thống – SYS_ADMIN */}

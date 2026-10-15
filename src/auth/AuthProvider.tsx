@@ -12,6 +12,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [user, setUser] = useState<SessionUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
+  const [loggedOut, setLoggedOut] = useState(false)
 
   const reset = useCallback(() => {
     disconnectRealtime()
@@ -59,10 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStore.setUser(res.user)
     setUser(res.user)
     setStatus('authenticated')
+    setLoggedOut(false)
     return res.user
   }, [])
 
   const logout = useCallback(async () => {
+    // Đặt cờ trước khi gọi server: nếu "hết phiên" kích hoạt trong lúc chờ (vd. Socket.IO refresh thất bại sau khi
+    // refresh token bị thu hồi), RequireAuth vẫn biết đây là đăng xuất chủ động.
+    setLoggedOut(true)
     const refreshToken = tokenStore.getRefreshToken()
     if (refreshToken) {
       try {
@@ -75,6 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     reset()
   }, [reset])
 
-  const value = useMemo(() => ({ user, status, login, logout }), [user, status, login, logout])
+  const value = useMemo(
+    () => ({ user, status, loggedOut, login, logout }),
+    [user, status, loggedOut, login, logout],
+  )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

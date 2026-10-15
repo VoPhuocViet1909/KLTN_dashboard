@@ -32,3 +32,28 @@ export function useConfigRealtime() {
     if (cfg && typeof cfg === 'object') qc.setQueryData(CONFIG_QUERY_KEY, cfg)
   })
 }
+
+// ---------- Cấu hình tổ chức (ORG_ADMIN có orgId) – team-sync mục 4.4 ----------
+
+export const ORG_CONFIG_QUERY_KEY = ['config', 'org'] as const
+
+/** Chỉ các khóa tổ chức đã lưu, KHÔNG gộp với cá nhân. Chưa có gì thì {}. */
+export function useOrgConfig(enabled = true) {
+  return useQuery({
+    queryKey: ORG_CONFIG_QUERY_KEY,
+    queryFn: () => request<ConfigValues>({ url: '/config/org' }),
+    enabled,
+  })
+}
+
+/** PUT thay TOÀN BỘ khóa tổ chức ({} = xóa hết). Cấu hình hiệu lực của chính mình cũng đổi nên làm mới cache cá nhân. */
+export function useSaveOrgConfig() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: ConfigValues) => request<ConfigValues>({ method: 'PUT', url: '/config/org', data: body }),
+    onSuccess: (saved) => {
+      qc.setQueryData(ORG_CONFIG_QUERY_KEY, saved)
+      void qc.invalidateQueries({ queryKey: CONFIG_QUERY_KEY })
+    },
+  })
+}

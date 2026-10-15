@@ -20,9 +20,13 @@ export function draftFromServer(cfg: ConfigValues | undefined): Draft {
 }
 
 /** Body PUT: đúng các khóa Tùy chỉnh, cộng khóa hiệu chỉnh riêng máy đang có (PUT thay toàn bộ, bỏ sót là mất). */
-export function buildBody(draft: Draft, server: ConfigValues | undefined): ConfigValues {
+export function buildBody(
+  draft: Draft,
+  server: ConfigValues | undefined,
+  preserveKeys: readonly string[] = PRESERVED_KEYS,
+): ConfigValues {
   const body: ConfigValues = {}
-  for (const key of PRESERVED_KEYS) {
+  for (const key of preserveKeys) {
     const v = server?.[key]
     if (v !== undefined) body[key] = v
   }
@@ -33,7 +37,8 @@ export function buildBody(draft: Draft, server: ConfigValues | undefined): Confi
 }
 
 /** Body cho "Xóa mọi tùy chỉnh": mọi thứ về mặc định, trừ hiệu chỉnh riêng máy. */
-export const clearedBody = (server: ConfigValues | undefined) => buildBody({}, server)
+export const clearedBody = (server: ConfigValues | undefined, preserveKeys: readonly string[] = PRESERVED_KEYS) =>
+  buildBody({}, server, preserveKeys)
 
 const norm = (v: string | boolean | undefined) => {
   if (typeof v !== 'string') return v
