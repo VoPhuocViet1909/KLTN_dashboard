@@ -6,6 +6,7 @@ import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage, Placeholder } from '@/pages/misc'
 import { OverviewPage } from '@/pages/OverviewPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 
 export function AppRoutes() {
   return (
@@ -18,10 +19,7 @@ export function AppRoutes() {
           <Route index element={<OverviewPage />} />
           <Route path="habits" element={<HabitsPage />} />
           <Route path="history" element={<HistoryPage />} />
-          <Route
-            path="settings"
-            element={<Placeholder title="Cấu hình" apis={['GET /config/me', 'PUT /config/me (thay toàn bộ)']} />}
-          />
+          <Route path="settings" element={<SettingsPage />} />
 
           {/* Tổ chức – ORG_ADMIN */}
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>
