@@ -8,6 +8,8 @@ export interface AuthContextValue {
   status: AuthStatus
   /** true khi người dùng tự bấm đăng xuất (khác với phiên hết hạn): đăng nhập lại thì không quay về trang cũ */
   loggedOut: boolean
+  /** Lý do bị đưa về trang đăng nhập ngoài ý muốn (tổ chức tạm ngưng…); null khi không có */
+  notice: string | null
   login: (email: string, password: string) => Promise<SessionUser>
   logout: () => Promise<void>
 }

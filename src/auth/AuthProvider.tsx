@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { authApi } from '@/lib/api/auth'
 import { onSessionExpired, refreshAccessToken } from '@/lib/api/client'
-import { ApiError } from '@/lib/api/errors'
+import { ApiError, MSG_ORG_UNAVAILABLE, ORGANIZATION_INACTIVE, ORGANIZATION_UNAVAILABLE, toApiError } from '@/lib/api/errors'
 import { tokenStore } from '@/lib/api/tokenStore'
 import type { SessionUser } from '@/lib/api/types'
 import { disconnectRealtime } from '@/realtime/socket'
@@ -13,6 +13,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
   const [loggedOut, setLoggedOut] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const reset = useCallback(() => {
     disconnectRealtime()
@@ -37,14 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           current = await authApi.me() // mock_server.py chưa có /auth/me: dùng thông tin đã lưu
           tokenStore.setUser(current)
         } catch (e) {
-          if (e instanceof ApiError && e.status === 401) throw e
+          // 401: phiên hỏng; 403 ORGANIZATION_INACTIVE: tổ chức tạm ngưng (client.ts đã xóa token và đặt thông báo)
+          if (e instanceof ApiError && (e.status === 401 || e.code === ORGANIZATION_INACTIVE)) throw e
         }
         if (!cancelled) {
           setUser(current)
           setStatus('authenticated')
         }
-      } catch {
-        if (!cancelled) setStatus('anonymous')
+      } catch (e) {
+        if (cancelled) return
+        // 503: chưa kiểm được tổ chức (phiên vẫn còn) – nói rõ để người dùng thử lại thay vì tưởng bị đăng xuất.
+        if (toApiError(e).code === ORGANIZATION_UNAVAILABLE) setNotice(MSG_ORG_UNAVAILABLE)
+        setStatus('anonymous')
       }
     })()
     return () => {
@@ -52,7 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  useEffect(() => onSessionExpired(reset), [reset])
+  useEffect(
+    () =>
+      onSessionExpired((end) => {
+        setNotice((prev) => end.notice ?? prev)
+        reset()
+      }),
+    [reset],
+  )
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login(email, password)
@@ -61,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user)
     setStatus('authenticated')
     setLoggedOut(false)
+    setNotice(null)
     return res.user
   }, [])
 
@@ -68,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Đặt cờ trước khi gọi server: nếu "hết phiên" kích hoạt trong lúc chờ (vd. Socket.IO refresh thất bại sau khi
     // refresh token bị thu hồi), RequireAuth vẫn biết đây là đăng xuất chủ động.
     setLoggedOut(true)
+    setNotice(null)
     const refreshToken = tokenStore.getRefreshToken()
     if (refreshToken) {
       try {
@@ -81,8 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [reset])
 
   const value = useMemo(
-    () => ({ user, status, loggedOut, login, logout }),
-    [user, status, loggedOut, login, logout],
+    () => ({ user, status, loggedOut, notice, login, logout }),
+    [user, status, loggedOut, notice, login, logout],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

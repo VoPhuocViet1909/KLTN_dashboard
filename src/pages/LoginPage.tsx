@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ApiError, toApiError } from '@/lib/api/errors'
 
 export function LoginPage() {
-  const { status, login } = useAuth()
+  const { status, login, notice } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from || '/'
@@ -37,7 +37,8 @@ export function LoginPage() {
   const fieldError = (f: string) => error?.fieldErrors[f]
   const formError =
     error?.code === 'AUTH_INVALID_CREDENTIALS'
-      ? 'Email hoặc mật khẩu không đúng'
+      ? // Backend dùng chung mã này cho sai mật khẩu, tài khoản bị khóa và tổ chức tạm ngưng nên không nói chắc được.
+        'Email hoặc mật khẩu không đúng. Nếu bạn chắc đã nhập đúng, tài khoản có thể đã bị khóa hoặc tổ chức đang tạm ngưng.'
       : error && (error.status === 0 || error.status === 502 || error.status === 504)
         ? 'Không kết nối được máy chủ. Kiểm tra backend hoặc mock_server.py đang chạy.'
         : error && Object.keys(error.fieldErrors).length === 0
@@ -83,6 +84,12 @@ export function LoginPage() {
             />
             {fieldError('password') && <p className="text-sm text-destructive">{fieldError('password')}</p>}
           </div>
+
+          {notice && !formError && (
+            <p role="alert" className="text-sm text-destructive">
+              {notice}
+            </p>
+          )}
 
           {formError && (
             <p role="alert" className="text-sm text-destructive">
