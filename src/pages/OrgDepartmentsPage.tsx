@@ -48,7 +48,7 @@ function OrgDepartments({ orgId }: { orgId: string }) {
     } catch (e) {
       const err = toApiError(e)
       if (err.code === 'NAME_TAKEN') return 'Đã có phòng ban tên này.'
-      if (err.code === 'ORGANIZATION_INACTIVE') return 'Tổ chức đang ngừng hoạt động, không thêm được phòng ban.'
+      if (err.code === 'ORGANIZATION_INACTIVE') return 'Tổ chức đang tạm ngưng, không thêm được phòng ban.'
       if (err.code === 'VALIDATION_FAILED' && err.fieldErrors.name) {
         return `Tên phòng ban không hợp lệ (${err.fieldErrors.name}).`
       }
@@ -77,7 +77,7 @@ function OrgDepartments({ orgId }: { orgId: string }) {
         <h1 className="text-2xl font-semibold">Phòng ban</h1>
         <p className="text-sm text-muted-foreground">
           {org.isPending ? 'Đang tải…' : (org.data?.name ?? 'Không tải được tên tổ chức')}
-          {org.data && !org.data.active && ' · đang ngừng hoạt động'}
+          {org.data && !org.data.active && ' · đang tạm ngưng'}
         </p>
         <p className="text-xs text-muted-foreground">Hiện chưa gán được nhân viên vào phòng ban.</p>
       </div>

@@ -15,7 +15,7 @@ import {
   type Organization,
 } from '@/lib/api/org'
 
-/** Danh mục tổ chức (SYS_ADMIN): thêm, ngừng hoạt động / kích hoạt, số phòng ban. */
+/** Danh mục tổ chức (SYS_ADMIN): thêm, tạm ngưng / bật lại, số phòng ban. */
 export function AdminOrganizationsPage() {
   const organizations = useOrganizations()
   const create = useCreateOrganization()
@@ -51,7 +51,7 @@ export function AdminOrganizationsPage() {
     setStatus.mutate(
       { id: o.id, active },
       {
-        onSuccess: () => toast.success(active ? 'Đã kích hoạt tổ chức.' : 'Đã ngừng hoạt động tổ chức.'),
+        onSuccess: () => toast.success(active ? 'Đã bật lại tổ chức.' : 'Đã tạm ngưng tổ chức.'),
         onError: (e) => {
           toast.error(`Không đổi được trạng thái: ${toApiError(e).message}`)
           void organizations.refetch()
@@ -106,7 +106,7 @@ export function AdminOrganizationsPage() {
                   <TableRow key={o.id}>
                     <TableCell className={o.active ? '' : 'text-muted-foreground'}>{o.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{o.active ? 'Đang hoạt động' : 'Ngừng hoạt động'}</Badge>
+                      <Badge variant="outline">{o.active ? 'Đang hoạt động' : 'Tạm ngưng'}</Badge>
                     </TableCell>
                     <TableCell className="tabular text-right">
                       {count?.isPending ? '…' : count?.error ? '—' : count?.data}
@@ -114,7 +114,7 @@ export function AdminOrganizationsPage() {
                     <TableCell>
                       {o.active ? (
                         <Button variant="outline" size="sm" disabled={setStatus.isPending} onClick={() => setStopTarget(o)}>
-                          Ngừng
+                          Tạm ngưng
                         </Button>
                       ) : (
                         <Button
@@ -123,7 +123,7 @@ export function AdminOrganizationsPage() {
                           disabled={setStatus.isPending}
                           onClick={() => changeStatus(o, true)}
                         >
-                          Kích hoạt
+                          Bật lại
                         </Button>
                       )}
                     </TableCell>
@@ -138,10 +138,11 @@ export function AdminOrganizationsPage() {
       <Dialog open={stopTarget !== null} onOpenChange={(o) => !o && !setStatus.isPending && setStopTarget(null)}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Ngừng hoạt động tổ chức?</DialogTitle>
+            <DialogTitle>Tạm ngưng tổ chức?</DialogTitle>
             <DialogDescription>
-              {stopTarget?.name} sẽ chuyển sang "Ngừng hoạt động": không thêm được phòng ban mới. Hiện chỉ đánh dấu trong
-              danh mục; nhân viên của tổ chức này vẫn đăng nhập và dùng được.
+              Thành viên của {stopTarget?.name} sẽ không đăng nhập, làm mới phiên, gọi API hay nhận dữ liệu realtime được; ai
+              đang đăng nhập sẽ bị đưa về trang đăng nhập ở thao tác tiếp theo. Quản trị hệ thống không bị ảnh hưởng, camera
+              đang mở chưa bị ngắt. Bật lại thì dùng lại được, dữ liệu vẫn nguyên.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -153,7 +154,7 @@ export function AdminOrganizationsPage() {
               onClick={() => stopTarget && changeStatus(stopTarget, false)}
               disabled={setStatus.isPending}
             >
-              {setStatus.isPending ? 'Đang xử lý…' : 'Ngừng hoạt động'}
+              {setStatus.isPending ? 'Đang xử lý…' : 'Tạm ngưng tổ chức'}
             </Button>
           </DialogFooter>
         </DialogContent>
