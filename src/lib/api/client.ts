@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
-import { toApiError } from './errors'
+import { MSG_ORG_INACTIVE, MSG_SESSION_ENDED, ORGANIZATION_INACTIVE, toApiError } from './errors'
 import { tokenStore } from './tokenStore'
 import type { TokenPair } from './types'
 
@@ -24,10 +24,17 @@ api.interceptors.request.use((config) => {
 // ---------- Refresh token dùng một lần: chỉ cho MỘT request refresh chạy tại một thời điểm ----------
 
 let refreshing: Promise<string> | null = null
-const sessionExpiredListeners = new Set<() => void>()
+/** `notice`: lý do cần hiện ở trang đăng nhập (tổ chức tạm ngưng); không có thì chỉ là hết phiên thường. */
+type SessionEnd = { notice?: string }
+const sessionExpiredListeners = new Set<(end: SessionEnd) => void>()
 
-/** Đăng ký hàm gọi khi phiên hết hạn hẳn (refresh thất bại) – AuthProvider dùng để đưa về trang đăng nhập. */
-export function onSessionExpired(fn: () => void) {
+function endSession(end: SessionEnd = {}) {
+  tokenStore.clear()
+  sessionExpiredListeners.forEach((fn) => fn(end))
+}
+
+/** Đăng ký hàm gọi khi phiên hết hạn hẳn (refresh thất bại, tổ chức tạm ngưng) – AuthProvider dùng để đưa về trang đăng nhập. */
+export function onSessionExpired(fn: (end: SessionEnd) => void) {
   sessionExpiredListeners.add(fn)
   return () => {
     sessionExpiredListeners.delete(fn)
@@ -48,11 +55,14 @@ export function refreshAccessToken(): Promise<string> {
       return data.accessToken
     })()
       .catch((err) => {
-        // Lỗi mạng: giữ phiên, để lần sau thử lại. Lỗi 401/400: phiên đã hết.
+        // Lỗi mạng và 5xx (kể cả 503 ORGANIZATION_UNAVAILABLE): giữ phiên, để lần sau thử lại.
+        // 400/401/403: phiên đã hết. Backend trả 401 cả khi tổ chức tạm ngưng (không tiết lộ), nên không phân biệt được.
         const status = axios.isAxiosError(err) ? err.response?.status : undefined
-        if (status !== undefined || (err instanceof Error && err.message === 'NO_REFRESH_TOKEN')) {
-          tokenStore.clear()
-          sessionExpiredListeners.forEach((fn) => fn())
+        if (status !== undefined && status < 500) {
+          const code = (err.response?.data as { code?: string } | undefined)?.code
+          endSession({ notice: code === ORGANIZATION_INACTIVE ? MSG_ORG_INACTIVE : MSG_SESSION_ENDED })
+        } else if (err instanceof Error && err.message === 'NO_REFRESH_TOKEN') {
+          endSession()
         }
         throw err
       })
@@ -80,7 +90,12 @@ api.interceptors.response.use(
         /* rơi xuống trả lỗi gốc */
       }
     }
-    return Promise.reject(toApiError(error))
+    const apiError = toApiError(error)
+    // Tổ chức bị SYS_ADMIN tạm ngưng: token còn hạn nhưng Gateway không cho đi tiếp, refresh cũng vô ích -> về trang đăng nhập.
+    if (apiError.status === 403 && apiError.code === ORGANIZATION_INACTIVE && tokenStore.getRefreshToken()) {
+      endSession({ notice: MSG_ORG_INACTIVE })
+    }
+    return Promise.reject(apiError)
   },
 )
 

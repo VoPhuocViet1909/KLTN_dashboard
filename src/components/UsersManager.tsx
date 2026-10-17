@@ -316,6 +316,9 @@ function AddUserDialog({
           const apiErr = toApiError(err)
           if (apiErr.code === 'USER_EMAIL_TAKEN') {
             setErrors({ email: 'Email này đã có tài khoản.' })
+          } else if (isSystem && apiErr.code === 'AUTH_FORBIDDEN') {
+            // Từ 15/10 backend chặn tạo thành viên cho tổ chức tạm ngưng / không tồn tại bằng 403
+            setErrors({ orgId: 'Tổ chức này đang tạm ngưng hoặc không còn tồn tại. Chọn tổ chức khác hoặc bật lại tổ chức.' })
           } else if (apiErr.code === 'VALIDATION_FAILED' && Object.keys(apiErr.fieldErrors).length > 0) {
             const mapped: Partial<Record<FieldName, string>> = {}
             let rest: string | null = null
