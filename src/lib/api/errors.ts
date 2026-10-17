@@ -6,6 +6,8 @@ export const ORGANIZATION_INACTIVE = 'ORGANIZATION_INACTIVE'
 export const ORGANIZATION_UNAVAILABLE = 'ORGANIZATION_UNAVAILABLE'
 export const MSG_ORG_INACTIVE =
   'Tổ chức của bạn đang tạm ngưng nên tài khoản không dùng được. Liên hệ quản trị hệ thống để bật lại.'
+export const MSG_SESSION_ENDED =
+  'Phiên đăng nhập đã kết thúc. Hãy đăng nhập lại; nếu không vào được, tài khoản có thể bị khóa hoặc tổ chức đang tạm ngưng.'
 export const MSG_ORG_UNAVAILABLE = 'Chưa kiểm tra được trạng thái tổ chức của bạn. Hãy thử lại sau ít phút.'
 
 /** Lỗi đã chuẩn hóa. Rẽ nhánh theo `code`, không theo `message`. */

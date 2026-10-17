@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
-import { MSG_ORG_INACTIVE, ORGANIZATION_INACTIVE, toApiError } from './errors'
+import { MSG_ORG_INACTIVE, MSG_SESSION_ENDED, ORGANIZATION_INACTIVE, toApiError } from './errors'
 import { tokenStore } from './tokenStore'
 import type { TokenPair } from './types'
 
@@ -60,7 +60,7 @@ export function refreshAccessToken(): Promise<string> {
         const status = axios.isAxiosError(err) ? err.response?.status : undefined
         if (status !== undefined && status < 500) {
           const code = (err.response?.data as { code?: string } | undefined)?.code
-          endSession(code === ORGANIZATION_INACTIVE ? { notice: MSG_ORG_INACTIVE } : {})
+          endSession({ notice: code === ORGANIZATION_INACTIVE ? MSG_ORG_INACTIVE : MSG_SESSION_ENDED })
         } else if (err instanceof Error && err.message === 'NO_REFRESH_TOKEN') {
           endSession()
         }
