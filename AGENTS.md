@@ -2,7 +2,9 @@
 
 1. **Đọc trước mọi việc:** file thỏa thuận nhóm `team-sync` ở repo backend
    (`DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`, trên máy thường là
-   `../GIT_backend/DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`). File đó là nguồn duy nhất về API,
+   `../../BE/DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`). Khi clone riêng, đọc bản chia sẻ:
+   https://github.com/luongtan204/DoAnTotNghiep_BE/blob/main/.codex/skills/team-sync/SKILL.md.
+   File đó là nguồn duy nhất về API,
    quy tắc làm việc và tiến độ. Không tự chế endpoint, trường dữ liệu hay mã lỗi; thiếu API thì ghi vào mục
    "Cần chốt" của file đó.
 2. **Xong một hạng mục:** cập nhật bảng "Dashboard" trong `team-sync` (PR ở repo backend) cùng lúc với PR ở đây.
