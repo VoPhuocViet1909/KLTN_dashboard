@@ -1,8 +1,10 @@
-import { Building2, Gauge, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3 } from 'lucide-react'
+import { Building2, Gauge, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3, Menu } from 'lucide-react'
+import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { PlumbLine } from '@/components/PlumbLine'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { hasRole, useAuth } from '@/auth/context'
 import type { Role } from '@/lib/api/types'
 import { ROLE_LABEL } from '@/lib/labels'
@@ -55,10 +57,10 @@ const NAV: NavGroup[] = [
 export function AppLayout() {
   const { user, logout } = useAuth()
   const connected = useRealtimeConnected()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  return (
-    <div className="flex min-h-screen bg-surface text-foreground">
-      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r bg-sidebar">
+  const navigation = (onNavigate?: () => void) => (
+    <>
         <div className="flex items-center gap-2 px-5 py-5">
           <PlumbLine state="GOOD" size={28} />
           <span className="font-semibold leading-tight">Giám sát tư thế</span>
@@ -74,8 +76,9 @@ export function AppLayout() {
                     key={item.to}
                     to={item.to}
                     end
+                    onClick={onNavigate}
                     className={({ isActive }) =>
-                      `flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring ${
+                      `flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring ${
                         isActive
                           ? 'bg-sidebar-accent font-medium text-primary'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -92,25 +95,44 @@ export function AppLayout() {
         <div className="border-t px-5 py-4 text-sm">
           <div className="truncate font-medium">{user?.name || user?.email || user?.id}</div>
           <div className="text-xs text-muted-foreground">{user && ROLE_LABEL[user.role]}</div>
-          <Button variant="ghost" size="sm" className="-ml-2 mt-2 text-muted-foreground" onClick={() => void logout()}>
+          <Button variant="ghost" className="-ml-2 mt-2 min-h-11 text-muted-foreground" onClick={() => { onNavigate?.(); void logout() }}>
             <LogOut aria-hidden />
             Đăng xuất
           </Button>
         </div>
-      </aside>
+    </>
+  )
 
+  return (
+    <div className="flex min-h-screen bg-surface text-foreground">
+      <a href="#main-content" className="sr-only z-50 rounded-md bg-background p-3 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Đến nội dung chính</a>
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r bg-sidebar lg:flex">
+        {navigation()}
+      </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-end px-8 pt-5 text-xs text-muted-foreground">
+        <header className="mb-6 flex min-h-18 items-center justify-between gap-4 border-b bg-background px-4 py-3 sm:px-8">
+          <div className="flex items-center gap-3">
+            <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="size-11 shrink-0 lg:hidden" aria-label="Mở điều hướng"><Menu aria-hidden /></Button>
+              </DialogTrigger>
+              <DialogContent className="top-0 left-0 flex h-dvh w-72 max-w-[90vw] translate-x-0 translate-y-0 flex-col gap-0 rounded-none p-0 sm:max-w-72" aria-describedby={undefined}>
+                <DialogTitle className="sr-only">Điều hướng chính</DialogTitle>
+                {navigation(() => setMenuOpen(false))}
+              </DialogContent>
+            </Dialog>
+            <span className="hidden text-sm font-medium sm:inline">Không gian làm việc</span>
+          </div>
           <span className="flex items-center gap-1.5" role="status">
             <span
               className="size-2 rounded-full"
               style={{ background: connected ? 'var(--primary)' : 'var(--status-offline)' }}
               aria-hidden
             />
-            {connected ? 'Đang nhận dữ liệu trực tiếp' : 'Chưa kết nối trực tiếp'}
+            <span className="text-xs text-muted-foreground">{connected ? 'Đang nhận dữ liệu trực tiếp' : 'Chưa kết nối trực tiếp'}</span>
           </span>
         </header>
-        <main className="flex-1 px-8 pb-12 pt-2">
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 pb-12 outline-none sm:px-8">
           <Outlet />
         </main>
       </div>

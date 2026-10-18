@@ -34,7 +34,10 @@ export function OverviewPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Tổng quan</h1>
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold">Tổng quan</h1>
+          <p className="text-sm text-muted-foreground">Tư thế hiện tại và thói quen ngồi của bạn.</p>
+        </div>
         <Tabs value={String(days)} onValueChange={(v) => setDays(Number(v))}>
           <TabsList aria-label="Khoảng thời gian">
             {RANGES.map((r) => (
@@ -62,7 +65,7 @@ export function OverviewPage() {
                 )}
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Mở Desktop App để xem tư thế của bạn tại đây.</p>
+              <p className="text-sm text-muted-foreground">Mở ứng dụng desktop, đăng nhập cùng tài khoản và hiệu chỉnh camera để xem tư thế tại đây.</p>
             )}
           </div>
         </div>

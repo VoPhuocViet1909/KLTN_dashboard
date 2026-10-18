@@ -18,3 +18,13 @@
 9. **Trước khi xong:** `npm run build` và `npm run lint` phải sạch. Thử bằng `mock_server.py` hoặc backend thật;
    nói rõ đã thử với cái nào.
 10. **Git:** mỗi việc một nhánh, PR vào `main`, không force-push, không commit `.env` hay `node_modules`.
+
+## Skill cài trong repo
+
+- Thiết kế/sửa UI: đọc `.agents/skills/ui-ux-pro-max/SKILL.md` và `.agents/skills/design-system/SKILL.md`.
+  `design-system` KLTN-DS-1 là ngôn ngữ chung với desktop; chốt quy tắc trước khi sửa màn hình.
+  Đổi quy tắc/token/nhãn chung phải đồng bộ hai repo và chạy `design-system/scripts/check_sync.py`.
+  Giữ hướng sáng, gọn, dễ dùng, tiếng Việt; kết quả tìm kiếm là gợi ý, không tự thay token hoặc thêm thư viện.
+- Viết/sửa/review code: đọc `.agents/skills/ponytail/SKILL.md`; chọn thay đổi nhỏ nhất giải quyết đủ yêu cầu,
+  giữ validation, bảo mật, accessibility và kiểm thử cần thiết.
+- Nguồn, phiên bản và lệnh chạy: `.agents/skills/README.md`. Skill nằm trong Git để đồng đội dùng cùng bản.
