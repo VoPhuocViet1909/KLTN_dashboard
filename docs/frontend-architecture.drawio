@@ -1,0 +1,87 @@
+<mxGraphModel adaptiveColors="auto" grid="1" page="1" pageWidth="1250" pageHeight="900">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="entry" value="Trình duyệt&lt;br&gt;main.tsx / React" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="auth" value="AuthProvider&lt;br&gt;RequireAuth / tokenStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="300" y="40" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="pages" value="AppLayout + pages&lt;br&gt;Cá nhân / ORG / SYS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="560" y="40" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="query" value="TanStack Query&lt;br&gt;lib/api/*.ts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="560" y="200" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="http" value="client.ts / axios&lt;br&gt;Bearer + refresh chung" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="300" y="200" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="socket" value="realtime/hooks.ts&lt;br&gt;socket.ts / auth token" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="820" y="200" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="proxy" value="Vite :5173 (dev)&lt;br&gt;/api và /socket.io" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="300" y="370" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="gateway" value="Backend Gateway :8080&lt;br&gt;/api/v1 và /socket.io" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="560" y="370" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="rest" value="Auth / Config / Organization&lt;br&gt;Analytics / Alert" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="560" y="550" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="notify" value="Notification&lt;br&gt;status / config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="820" y="550" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="edge" value="Desktop Python&lt;br&gt;Camera + mô hình" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="40" y="710" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="ingest" value="Ingestion → Kafka&lt;br&gt;Telemetry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="300" y="710" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="note" value="Mốc FE: 279cffc · 18/10/2026&lt;br&gt;Chưa kiểm runtime FE với BE&lt;br&gt;Chưa có viewer camera trong FE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="820" y="710" width="220" height="85" as="geometry" />
+    </mxCell>
+    <mxCell id="e0" value="khởi tạo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="entry" target="auth" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e1" value="theo role" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="auth" target="pages" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e2" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="pages" target="query" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e3" value="request" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="query" target="http" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e4" value="/api/v1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="http" target="proxy" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e5" value="hook" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="pages" target="socket" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e6" value="/socket.io" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="socket" target="proxy" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e7" value="proxy dev" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="proxy" target="gateway" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e8" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="gateway" target="rest" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e9" value="Socket.IO" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="gateway" target="notify" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e10" value="gửi lô" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="edge" target="ingest" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e11" value="metrics / alerts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="ingest" target="rest" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e12" value="status" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="ingest" target="notify" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e13" value="config qua Kafka" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;fontSize=12;" edge="1" source="rest" target="notify" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+  </root>
+</mxGraphModel>
