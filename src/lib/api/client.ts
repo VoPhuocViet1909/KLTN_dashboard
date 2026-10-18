@@ -104,3 +104,8 @@ export async function request<T>(config: AxiosRequestConfig): Promise<T> {
   const { data } = await api.request<T>(config)
   return data
 }
+
+/** WHEP dùng media grant riêng; không gắn API token/cookie hoặc đi theo redirect. */
+export function requestMedia(url: URL, init: RequestInit): Promise<Response> {
+  return fetch(url, { ...init, credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer' })
+}

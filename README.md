@@ -64,6 +64,16 @@ nên console có vài lỗi 404 và góc trên hiện "Mất kết nối realtim
 
 ## Lệnh
 
+Camera trực tiếp đã nằm trong Tổng quan cá nhân: ứng dụng desktop phải đăng nhập cùng tài khoản và chủ động chia sẻ camera, sau đó chọn thiết bị/góc và bấm **Xem camera**. Dừng hoặc rời trang sẽ đóng luồng; quyền xem tự gia hạn. Quản trị viên chỉ xem camera của chính mình. Không ghi hình hoặc bật camera từ xa.
+
+Trên desktop bản nguồn `feat/desktop-camera-sharing`: đăng nhập → hiệu chỉnh → mục **Chia sẻ camera lên web** → chọn góc → **Bật chia sẻ**. Lần đầu có thể cần chọn `ffmpeg.exe`. **Dừng chia sẻ** chỉ ngừng truyền hình, vẫn theo dõi tư thế; đăng xuất/thoát dừng cả publisher. Mỗi phiên mặc định tắt chia sẻ. Khi mất luồng, web xóa hình cũ và thử kết nối lại hữu hạn. Bản portable cũ chưa có nút này.
+
+`VITE_MEDIA_BASE_URL` là origin MediaMTX (mặc định cùng hostname, cổng 8889); HTTPS phải dùng media HTTPS. Khi chạy Vite :5173, thêm `http://localhost:5173,http://127.0.0.1:5173` vào `MEDIA_WEB_ORIGINS` trong `.env` backend rồi `docker compose up -d --no-deps media`. Giữ các origin đang dùng; không mở wildcard. `.env` cũ ghi đè mặc định Compose mới.
+
+Form cá nhân cần backend có `GET /api/v1/config/me/details` trả `{personal, organization, effective}`. Chỉ khóa `personal` được gửi lại; các ô không tùy chỉnh theo tổ chức rồi mặc định ứng dụng. Khi có cập nhật trong lúc sửa, dùng **Dùng giá trị mới** trước khi lưu để tránh ghi đè cấu hình mới. Hiệu chỉnh camera và tùy chỉnh `null` theo mô hình được giữ lại.
+
+Kiểm ngày 18/10/2026: native WebRTC side decode 640×360, gia hạn sau hơn 100 giây và Dừng đạt với BE thật; tổ chức nhận BAD/GOOD từ desktop với video/landmark giả. Chưa nghiệm thu webcam thật, front hoặc LAN/TLS/NAT.
+
 | Lệnh | Việc |
 | --- | --- |
 | `npm run dev` | chạy dev |
