@@ -1,22 +1,23 @@
 import { ConfigEditor } from '@/components/ConfigEditor'
-import { useConfigRealtime, useMyConfig, useSaveMyConfig } from '@/lib/api/config'
+import { useConfigRealtime, useMyConfigDetails, useSaveMyConfig } from '@/lib/api/config'
 import { PRESERVED_KEYS } from '@/lib/configFields'
 
-/** Cấu hình cá nhân: GET trả cấu hình đã gộp tổ chức + cá nhân; PUT thay toàn bộ phần cá nhân. */
+/** Chỉ sửa khóa cá nhân; khóa không gửi tiếp tục kế thừa tổ chức. */
 export function SettingsPage() {
   useConfigRealtime()
-  const query = useMyConfig()
+  const query = useMyConfigDetails()
   const save = useSaveMyConfig()
   return (
     <ConfigEditor
       title="Cấu hình"
       subtitle="Áp dụng cho Desktop App trên mọi máy của bạn."
-      query={query}
+      query={{ ...query, data: query.data?.personal }}
+      inherited={query.data?.organization}
       save={save}
       preserveKeys={PRESERVED_KEYS}
       savedMessage="Đã lưu cấu hình"
       clearedMessage="Đã xóa mọi tùy chỉnh"
-      clearDescription="Tất cả giá trị bạn đã đặt sẽ quay về mặc định trên mọi máy. Cấu hình hiệu chỉnh camera của từng máy được giữ nguyên."
+      clearDescription="Các tùy chỉnh sẽ quay về cấu hình tổ chức hoặc mặc định của ứng dụng. Cấu hình hiệu chỉnh camera được giữ nguyên."
     />
   )
 }

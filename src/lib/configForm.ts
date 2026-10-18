@@ -5,14 +5,15 @@ import { CONFIG_FIELDS, DISTANCE_DEFAULTS, FIELD_BY_KEY, PRESERVED_KEYS, type Co
  * Trạng thái form: khóa CÓ mặt = "Tùy chỉnh" (sẽ gửi), khóa vắng = "Mặc định" (không gửi).
  * Ô số giữ nguyên chuỗi người dùng gõ; ô công tắc giữ boolean.
  */
-export type Draft = Record<string, string | boolean>
+export type Draft = Record<string, string | boolean | null>
 
-/** Khóa có trong GET coi là Tùy chỉnh. null = "theo mô hình" = giống để mặc định. */
+/** null là tùy chỉnh theo mô hình, vẫn phải giữ khi tổ chức có ngưỡng số. */
 export function draftFromServer(cfg: ConfigValues | undefined): Draft {
   const draft: Draft = {}
   for (const f of CONFIG_FIELDS) {
     const v = cfg?.[f.key]
-    if (v === undefined || v === null) continue
+    if (v === undefined) continue
+    if (v === null) { draft[f.key] = null; continue }
     if (f.kind === 'boolean') draft[f.key] = typeof v === 'boolean' ? v : Boolean(f.default)
     else draft[f.key] = String(v)
   }
@@ -31,7 +32,7 @@ export function buildBody(
     if (v !== undefined) body[key] = v
   }
   for (const [key, v] of Object.entries(draft)) {
-    body[key] = typeof v === 'boolean' ? v : Number(v)
+    body[key] = v === null || typeof v === 'boolean' ? v : Number(v)
   }
   return body
 }
@@ -40,7 +41,7 @@ export function buildBody(
 export const clearedBody = (server: ConfigValues | undefined, preserveKeys: readonly string[] = PRESERVED_KEYS) =>
   buildBody({}, server, preserveKeys)
 
-const norm = (v: string | boolean | undefined) => {
+const norm = (v: string | boolean | null | undefined) => {
   if (typeof v !== 'string') return v
   const n = Number(v)
   return v.trim() !== '' && Number.isFinite(n) ? n : v
@@ -58,7 +59,7 @@ export function stableKey(cfg: ConfigValues | undefined) {
 }
 
 /** Lỗi theo ô (chỉ ô Tùy chỉnh có lỗi riêng; lỗi cặp ngưỡng gắn vào ô đang Tùy chỉnh). */
-export function validateDraft(draft: Draft): Record<string, string> {
+export function validateDraft(draft: Draft, inherited: ConfigValues = {}): Record<string, string> {
   const errors: Record<string, string> = {}
 
   const num = (f: ConfigField): number | null => {
@@ -86,22 +87,23 @@ export function validateDraft(draft: Draft): Record<string, string> {
   // distance_off_cm >= distance_on_cm, tính cả mặc định 50/55 khi một bên để mặc định
   const onCustom = 'distance_on_cm' in draft
   const offCustom = 'distance_off_cm' in draft
-  const on = onCustom ? values.distance_on_cm : DISTANCE_DEFAULTS.on
-  const off = offCustom ? values.distance_off_cm : DISTANCE_DEFAULTS.off
+  const on = onCustom ? values.distance_on_cm : Number(inherited.distance_on_cm ?? DISTANCE_DEFAULTS.on)
+  const off = offCustom ? values.distance_off_cm : Number(inherited.distance_off_cm ?? DISTANCE_DEFAULTS.off)
   if (on !== null && on !== undefined && off !== null && off !== undefined && off < on) {
     const target = offCustom ? 'distance_off_cm' : 'distance_on_cm'
     if (!errors[target]) {
       errors[target] = offCustom
         ? `Phải lớn hơn hoặc bằng mức báo (${on} cm).`
-        : `Mức hết báo mặc định là ${DISTANCE_DEFAULTS.off} cm nên mức này không được lớn hơn ${DISTANCE_DEFAULTS.off} cm. Hạ mức này, hoặc đặt mức hết báo cao hơn.`
+        : `Không lớn hơn mức hết báo đang áp dụng (${off} cm). Hạ mức này, hoặc đặt mức hết báo cao hơn.`
     }
   }
 
   // shoulder_tilt_off <= shoulder_tilt_on khi cả hai có số (một bên để mặc định thì mô hình quyết định)
-  const sOn = values.shoulder_tilt_on
-  const sOff = values.shoulder_tilt_off
-  if (sOn != null && sOff != null && sOff > sOn && !errors.shoulder_tilt_off) {
-    errors.shoulder_tilt_off = `Không lớn hơn mức báo (${sOn}°).`
+  const sOn = 'shoulder_tilt_on' in draft ? values.shoulder_tilt_on : inherited.shoulder_tilt_on
+  const sOff = 'shoulder_tilt_off' in draft ? values.shoulder_tilt_off : inherited.shoulder_tilt_off
+  if (typeof sOn === 'number' && typeof sOff === 'number' && sOff > sOn) {
+    const target = 'shoulder_tilt_off' in draft ? 'shoulder_tilt_off' : 'shoulder_tilt_on'
+    if (!errors[target]) errors[target] = `Mức hết báo (${sOff}°) không được lớn hơn mức báo (${sOn}°).`
   }
 
   return errors
