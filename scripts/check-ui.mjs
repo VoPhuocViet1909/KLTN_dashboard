@@ -196,6 +196,9 @@ try {
   assert(await js('document.getElementById("camera-device").textContent.includes("my-device")'), 'Keep the selected stream when another device updates')
   await delay(1300) // expiresIn 16s fixture -> renew before expiry at 1s.
   assert(await js('window.cameraPeers.length >= 2 && window.cameraPeers[0].closed'), 'Renewal must replace and close the old peer')
+  await js('window.cameraPeers.at(-1).connectionState = "disconnected"; window.cameraPeers.at(-1).onconnectionstatechange()')
+  await waitFor('document.body.textContent.includes("Đang chờ camera chia sẻ")')
+  assert(await js('window.cameraPeers.every(p => p.closed) && document.querySelector("video").srcObject === null'), 'Lost publisher must clear stale video and release peer')
   await cameraClick()
   await delay(200)
   assert(await js('window.cameraPeers.every(p => p.closed) && document.querySelector("video").srcObject === null'), 'Stop must release media')

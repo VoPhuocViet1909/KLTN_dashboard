@@ -65,14 +65,18 @@ export function watchCamera(video: HTMLVideoElement, userId: string, deviceId: s
       const renewAt = Date.now() + (grant.expiresIn - 15) * 1000
       peer = new RTCPeerConnection()
       peer.addTransceiver('video', { direction: 'recvonly' })
-      peer.ontrack = e => { if (!cancelled) video.srcObject = new MediaStream([e.track]) }
+      peer.ontrack = e => {
+        if (cancelled) return
+        video.srcObject = new MediaStream([e.track])
+        e.track.onended = () => { if (!cancelled) retry() }
+      }
       peer.onconnectionstatechange = () => {
         if (cancelled) return
         if (peer?.connectionState === 'connected') {
           clearTimeout(deadline)
           retries = 0
           status('Đang phát trực tiếp.')
-        } else if (peer?.connectionState === 'failed') {
+        } else if (peer && ['failed', 'disconnected', 'closed'].includes(peer.connectionState)) {
           retry()
         }
       }
