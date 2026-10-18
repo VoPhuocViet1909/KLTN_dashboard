@@ -1,5 +1,7 @@
 # KLTN Dashboard
 
+Bản đồ mã cho AI và sơ đồ kiến trúc: [docs/architecture.md](docs/architecture.md).
+
 Web Dashboard của hệ thống giám sát tư thế ngồi: thống kê cá nhân, lịch sử cảnh báo, trạng thái realtime,
 quản lý tổ chức. API và quy tắc nhóm: xem `team-sync` ở repo backend (`AGENTS.md` có đường dẫn).
 

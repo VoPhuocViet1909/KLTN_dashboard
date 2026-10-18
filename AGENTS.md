@@ -1,8 +1,11 @@
 # Quy tắc cho AI (Codex, Claude) trong repo Dashboard
 
+Đọc [bản đồ dự án và sơ đồ](docs/architecture.md) trước khi sửa mã; tài liệu có link GitHub
+đến hợp đồng API và tiến độ chung, dùng được khi chỉ clone repo này.
+
 1. **Đọc trước mọi việc:** file thỏa thuận nhóm `team-sync` ở repo backend
-   (`DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`, trên máy thường là
-   `../GIT_backend/DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`). File đó là nguồn duy nhất về API,
+   ([bản trên GitHub](https://github.com/luongtan204/DoAnTotNghiep_BE/blob/main/.codex/skills/team-sync/SKILL.md),
+   bản local nếu có: `../../BE/DoAnTotNghiep_BE/.codex/skills/team-sync/SKILL.md`). File đó là nguồn duy nhất về API,
    quy tắc làm việc và tiến độ. Không tự chế endpoint, trường dữ liệu hay mã lỗi; thiếu API thì ghi vào mục
    "Cần chốt" của file đó.
 2. **Xong một hạng mục:** cập nhật bảng "Dashboard" trong `team-sync` (PR ở repo backend) cùng lúc với PR ở đây.
