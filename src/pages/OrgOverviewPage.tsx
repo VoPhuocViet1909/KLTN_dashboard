@@ -42,7 +42,7 @@ function OrgOverview() {
 
   // ORG_ADMIN tự ở room org:{orgId}; giữ trạng thái mới nhất theo máy từ lúc mở trang.
   const [devices, setDevices] = useState<Record<string, StatusEvent>>({})
-  useRealtimeEvent<StatusEvent>('status', (e) => setDevices((d) => ({ ...d, [e.deviceId]: e })))
+  useRealtimeEvent<StatusEvent>('status', (e) => setDevices((d) => ({ ...d, [`${e.userId}/${e.deviceId}`]: e })))
   const deviceList = Object.values(devices)
   const bad = deviceList.filter((d) => d.state === 'BAD').sort((a, b) => b.ts.localeCompare(a.ts))
   const countOf = (state: DeviceState) => deviceList.filter((d) => d.state === state).length
@@ -123,7 +123,7 @@ function OrgOverview() {
               ) : (
                 <ul className="divide-y text-sm">
                   {bad.map((d) => (
-                    <li key={d.deviceId} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2">
+                    <li key={`${d.userId}/${d.deviceId}`} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2">
                       <span className="font-medium">{nameOf(d.userId)}</span>
                       <span>{alertLabel(d.alertType)}</span>
                       <span className="tabular text-xs text-muted-foreground">{formatDateTime(d.ts)}</span>

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useAuth } from '@/auth/context'
+import { LiveCamera } from '@/components/LiveCamera'
 import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { ScoreTrend } from '@/components/charts/ScoreTrend'
 import { Fact } from '@/components/Fact'
@@ -18,12 +20,15 @@ const RANGES = [
 ]
 
 export function OverviewPage() {
+  const { user } = useAuth()
   const [days, setDays] = useState(7)
   const summary = useMySummary(days)
   const series = useMyTimeseries(days, 'day')
 
   const [devices, setDevices] = useState<Record<string, StatusEvent>>({})
-  useRealtimeEvent<StatusEvent>('status', (e) => setDevices((d) => ({ ...d, [e.deviceId]: e })))
+  useRealtimeEvent<StatusEvent>('status', (e) => {
+    if (e.userId === user?.id) setDevices((d) => ({ ...d, [e.deviceId]: e }))
+  })
   const deviceList = Object.values(devices).sort((a, b) => b.ts.localeCompare(a.ts))
   const current = deviceList[0] ?? null
 
@@ -34,7 +39,10 @@ export function OverviewPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Tổng quan</h1>
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-semibold">Tổng quan</h1>
+          <p className="text-sm text-muted-foreground">Tư thế hiện tại và thói quen ngồi của bạn.</p>
+        </div>
         <Tabs value={String(days)} onValueChange={(v) => setDays(Number(v))}>
           <TabsList aria-label="Khoảng thời gian">
             {RANGES.map((r) => (
@@ -62,7 +70,7 @@ export function OverviewPage() {
                 )}
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Mở Desktop App để xem tư thế của bạn tại đây.</p>
+              <p className="text-sm text-muted-foreground">Mở ứng dụng desktop, đăng nhập cùng tài khoản và hiệu chỉnh camera để xem tư thế tại đây.</p>
             )}
           </div>
         </div>
@@ -90,6 +98,8 @@ export function OverviewPage() {
           ) : null}
         </div>
       </section>
+
+      {user && <LiveCamera userId={user.id} devices={deviceList.map(d => d.deviceId)} />}
 
       <section className="space-y-3">
         <h2 className="font-medium">Điểm tư thế theo ngày</h2>
