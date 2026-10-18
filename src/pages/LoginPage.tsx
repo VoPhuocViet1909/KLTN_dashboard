@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Monitor, ChartNoAxesCombined } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '@/auth/context'
@@ -19,6 +19,11 @@ export function LoginPage() {
   const [error, setError] = useState<ApiError | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  const errorRef = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (error) (formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? errorRef.current)?.focus()
+  }, [error])
 
   if (status === 'authenticated') return <Navigate to={from} replace />
 
@@ -65,7 +70,7 @@ export function LoginPage() {
         </div>
         <p className="hidden text-xs text-muted-foreground md:block">Dùng cùng tài khoản trên web và ứng dụng desktop.</p>
         </section>
-        <form onSubmit={onSubmit} className="space-y-5 p-6 sm:p-10" aria-busy={submitting}>
+        <form ref={formRef} onSubmit={onSubmit} className="space-y-5 p-6 sm:p-10" aria-busy={submitting}>
           <div className="space-y-2 pb-2">
             <h1 className="text-2xl font-semibold">Đăng nhập</h1>
             <p className="text-sm leading-relaxed text-muted-foreground">Xem lại thói quen ngồi và những thay đổi của bạn theo thời gian.</p>
@@ -113,7 +118,7 @@ export function LoginPage() {
           )}
 
           {formError && (
-            <p role="alert" className="text-sm text-destructive">
+            <p ref={errorRef} tabIndex={-1} role="alert" className="text-sm text-destructive">
               {formError}
             </p>
           )}

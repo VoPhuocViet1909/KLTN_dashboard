@@ -32,6 +32,7 @@ try {
     socket.send(JSON.stringify({ id: key, method, params }))
   })
   let role = 'USER'
+  let rejectLogin = true
   const failures = []
   socket.addEventListener('message', event => {
     const msg = JSON.parse(event.data)
@@ -46,6 +47,10 @@ try {
       const { requestId, request } = msg.params
       const path = new URL(request.url).pathname
       let body = []
+      if (path.endsWith('/auth/login') && rejectLogin) {
+        call('Fetch.fulfillRequest', { requestId, responseCode: 401, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify({ code: 'AUTH_INVALID_CREDENTIALS', message: 'Invalid credentials' })).toString('base64') }).catch(e => failures.push(e.message))
+        return
+      }
       if (/\/auth\/(login|refresh)$/.test(path)) body = { accessToken: 'ui-fixture', refreshToken: 'ui-fixture', expiresIn: 3600, user: { id: 'ui-test', name: 'Nguyễn Minh Anh', email: 'ui@example.org', orgId: 'test-org', role } }
       else if (path.endsWith('/summary')) body = { meanScore: 84, badMinutes: 22, presenceMinutes: 180, alerts: { NECK_TRUNK: 3 } }
       call('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(e => failures.push(e.message))
@@ -58,18 +63,17 @@ try {
   }
   const waitFor = async expression => {
     for (let n = 0; n < 80; n++) { if (await js(expression)) return; await delay(100) }
-    assert.fail(`Not ready: ${expression}`)
+    assert.fail(`Not ready: ${expression}\n${await js('location.href + "\\n" + document.body.innerText.slice(0,1000)')}`)
   }
   const click = selector => js(`document.querySelector(${JSON.stringify(selector)}).click()`)
   const shot = async name => writeFileSync(join(output, name + '.png'), Buffer.from((await call('Page.captureScreenshot', { format: 'png' })).data, 'base64'))
   await call('Runtime.enable')
   await call('Page.enable')
+  await call('Page.bringToFront')
+  await call('Page.addScriptToEvaluateOnNewDocument', { source: 'localStorage.clear()' })
   await call('Fetch.enable', { patterns: [{ urlPattern: '*/api/v1/*' }, { urlPattern: '*/socket.io/*' }] })
   await call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
   for (role of ['USER', 'ORG_ADMIN', 'SYS_ADMIN']) {
-    await call('Page.navigate', { url: web + '/login' })
-    await delay(300)
-    await js('localStorage.clear()')
     await call('Page.navigate', { url: web + '/login' })
     await waitFor('!!document.getElementById("email")')
     for (const width of [375, 1440]) {
@@ -83,6 +87,12 @@ try {
     assert(await js('document.getElementById("password").type === "text"'), 'Password toggle')
     await js(`for (const [id, value] of [['email','ui@example.org'], ['password','fixture-only']]) { const el = document.getElementById(id); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el,value); el.dispatchEvent(new Event('input',{bubbles:true})) }`)
     await delay(100)
+    if (rejectLogin) {
+      await click('button[type="submit"]')
+      await waitFor('document.activeElement?.getAttribute("role") === "alert"')
+      assert(await js('document.activeElement.innerText.includes("Email hoặc mật khẩu không đúng")'), 'Login error guidance')
+      rejectLogin = false
+    }
     await click('button[type="submit"]')
     await waitFor('!!document.getElementById("main-content")')
     for (const width of [375, 768, 1024, 1440]) {
@@ -97,7 +107,8 @@ try {
         assert.equal(links.includes('/org/users'), role === 'ORG_ADMIN')
         assert.equal(links.includes('/admin/users'), role === 'SYS_ADMIN')
         if (role === 'USER' && width === 375) await shot('web-menu-375')
-        await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
+        await delay(100) // Allow the dialog's document-level keyboard handler to mount.
+        for (const type of ['keyDown', 'keyUp']) await call('Input.dispatchKeyEvent', { type, key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 })
         await waitFor('!document.querySelector("[role=dialog]")')
         assert(await js('document.activeElement.getAttribute("aria-label") === "Mở điều hướng"'), 'Focus return')
         await click('button[aria-label="Mở điều hướng"]')
@@ -109,7 +120,7 @@ try {
     }
   }
   assert.deepEqual(failures, [], 'Browser runtime errors')
-  console.log('PASS: mock login, password toggle, 3 roles, 4 viewport sizes, menu/Escape/focus, reduced motion, no page overflow')
+  console.log('PASS: mock login/error focus, password toggle, 3 roles, 4 viewport sizes, menu/Escape/focus, reduced motion, no page overflow')
 } finally {
   socket?.close()
   edge.kill()
