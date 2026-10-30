@@ -58,7 +58,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   // --- Khoảng cách màn hình
   {
     key: 'distance_on_cm', label: 'Báo khi ngồi gần hơn', group: 'distance', kind: 'number', unit: 'cm',
-    min: 20, max: 120, default: 50, hint: 'Ngồi gần màn hình hơn mức này thì cảnh báo.',
+    min: 20, max: 120, default: 50, hint: 'Ngồi gần màn hình hơn mức này thì cảnh báo; dưới 50 cm mắt dễ mỏi, khô hơn.',
   },
   {
     key: 'distance_off_cm', label: 'Hết báo khi ngồi xa hơn', group: 'distance', kind: 'number', unit: 'cm',
@@ -80,7 +80,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   // --- Nghỉ ngơi
   {
     key: 'sit_limit_min', label: 'Nhắc đứng dậy sau', group: 'rest', kind: 'number', unit: 'phút',
-    min: 0, max: 240, default: 50, hint: 'Ngồi liên tục bấy lâu thì nhắc vận động. Đặt 0 để tắt.',
+    min: 0, max: 240, default: 30, hint: 'Ngồi liên tục bấy lâu thì nhắc vận động. Nghiên cứu khuyên đứng dậy mỗi 30–60 phút. Đặt 0 để tắt.',
   },
   {
     key: 'sit_repeat_min', label: 'Nhắc đứng dậy lặp lại mỗi', group: 'rest', kind: 'number', unit: 'phút',
@@ -88,7 +88,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   },
   {
     key: 'eye_break_min', label: 'Nhắc nghỉ mắt mỗi', group: 'rest', kind: 'number', unit: 'phút',
-    min: 0, max: 120, default: 20, hint: 'Cứ ngồi bấy lâu thì nhắc nhìn xa vài chục giây. Đặt 0 để tắt.',
+    min: 0, max: 120, default: 20, hint: 'Cứ ngồi bấy lâu thì nhắc nhìn xa vài chục giây, theo quy tắc 20-20-20. Đặt 0 để tắt.',
   },
   {
     key: 'away_sec', label: 'Coi là vắng mặt sau', group: 'rest', kind: 'number', unit: 'giây',
