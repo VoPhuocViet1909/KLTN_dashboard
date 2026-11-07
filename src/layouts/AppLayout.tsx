@@ -1,4 +1,4 @@
-import { Building2, Gauge, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3, Menu } from 'lucide-react'
+import { Building2, Gauge, HeartPulse, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3, Menu } from 'lucide-react'
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
@@ -40,6 +40,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/org', label: 'Tổng quan tổ chức', icon: LayoutDashboard },
       { to: '/org/users', label: 'Nhân viên', icon: UsersRound },
+      { to: '/org/members', label: 'Sức khỏe nhân viên', icon: HeartPulse },
       { to: '/org/departments', label: 'Phòng ban', icon: Network },
       { to: '/org/settings', label: 'Cấu hình tổ chức', icon: SlidersHorizontal },
     ],

@@ -38,3 +38,14 @@ export function vnDayStarts(days: number, now = new Date()) {
   const today = Math.floor((now.getTime() + VN_OFFSET) / DAY) * DAY - VN_OFFSET
   return Array.from({ length: days + 1 }, (_, i) => new Date(today - (days - i) * DAY).toISOString())
 }
+
+const dateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: VN_TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+
+/** Ngày theo giờ Việt Nam dạng YYYY-MM-DD (dùng cho tên file). */
+export const vnDate = (d: Date) => dateFmt.format(d)
+
+/** 45 -> "45 phút", 150 -> "2,5 giờ". Dưới 90 phút hiện phút để số nhỏ không thành "0 giờ". */
+export function formatMinutes(minutes: number) {
+  if (minutes < 90) return `${Math.round(minutes)} phút`
+  return `${(minutes / 60).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} giờ`
+}

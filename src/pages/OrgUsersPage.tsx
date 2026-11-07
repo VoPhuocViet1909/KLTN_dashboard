@@ -6,5 +6,5 @@ import { UsersManager } from '@/components/UsersManager'
 export function OrgUsersPage() {
   const { user } = useAuth()
   if (!user?.orgId) return <NoOrgNotice title="Nhân viên" />
-  return <UsersManager scope="org" selfId={user.id} title="Nhân viên" />
+  return <UsersManager scope="org" selfId={user.id} title="Nhân viên" orgId={user.orgId} />
 }

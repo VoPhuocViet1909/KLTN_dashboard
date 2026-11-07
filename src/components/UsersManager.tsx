@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { PagedTable } from '@/components/PagedTable'
 import { Badge } from '@/components/ui/badge'
@@ -9,41 +10,80 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableCell, TableHead, TableRow } from '@/components/ui/table'
 import { toApiError } from '@/lib/api/errors'
-import { useOrganizations, type Organization } from '@/lib/api/org'
+import { useDepartmentsByOrg, useOrganizations, type Department, type Organization } from '@/lib/api/org'
 import type { Role } from '@/lib/api/types'
 import {
+  departmentError,
   useChangeRole,
   useCreateUser,
   useRefreshUsers,
+  useSetUserDepartment,
   useSetUserStatus,
   useUsers,
   type UserAccount,
 } from '@/lib/api/users'
 import { ORG_ASSIGNABLE_ROLES, ROLE_LABEL, roleLabel } from '@/lib/labels'
+import { NO_DEPARTMENT, NO_DEPARTMENT_LABEL } from '@/lib/orgHealth'
 
 /**
  * Bảng người dùng + thêm / đổi vai trò / khóa, dùng chung cho hai trang:
  *  - `org`: ORG_ADMIN, chỉ thấy người cùng tổ chức, không gán được SYS_ADMIN, không động được SYS_ADMIN.
  *  - `system`: SYS_ADMIN, thấy mọi người, có cột Tổ chức, gán được mọi vai trò, chọn tổ chức khi thêm.
  * Mọi thao tác trên chính mình đều bị vô hiệu (backend cũng trả 403).
+ * Cột Phòng ban: ORG_ADMIN chọn/đổi được (chỉ phòng ban đang dùng) và lọc theo phòng ban; SYS_ADMIN chỉ xem
+ * (nhiều tổ chức nên không có một bộ lọc chung).
  */
 export type UsersScope = 'org' | 'system'
 
 const NO_ORG = 'NONE'
+const ALL_DEPARTMENTS = 'ALL'
 const SYSTEM_ROLES: Role[] = ['USER', 'ORG_ADMIN', 'SYS_ADMIN']
 
-export function UsersManager({ scope, selfId, title }: { scope: UsersScope; selfId: string; title: string }) {
+export function UsersManager({
+  scope,
+  selfId,
+  title,
+  orgId,
+}: {
+  scope: UsersScope
+  selfId: string
+  title: string
+  /** tổ chức của ORG_ADMIN: để tải phòng ban cho bộ lọc kể cả khi trang đang trống */
+  orgId?: string
+}) {
   const isSystem = scope === 'system'
   const [page, setPage] = useState(0)
   const [addOpen, setAddOpen] = useState(false)
   const [lockTarget, setLockTarget] = useState<{ user: UserAccount; enable: boolean } | null>(null)
+  const [departmentFilter, setDepartmentFilter] = useState(ALL_DEPARTMENTS)
 
-  const users = useUsers(page)
+  const users = useUsers(page, true, departmentFilter === ALL_DEPARTMENTS ? undefined : departmentFilter)
   const orgs = useOrganizations(isSystem)
   const changeRole = useChangeRole()
   const setStatus = useSetUserStatus()
+  const setDepartment = useSetUserDepartment()
   const refresh = useRefreshUsers()
-  const busy = changeRole.isPending || setStatus.isPending
+  const queryClient = useQueryClient()
+  const busy = changeRole.isPending || setStatus.isPending || setDepartment.isPending
+
+  // Phòng ban của các tổ chức có mặt trên trang (ORG_ADMIN: chỉ tổ chức của mình), chung cache với trang Phòng ban.
+  const pageOrgIds = useMemo(() => {
+    const ids = new Set<string>(orgId ? [orgId] : [])
+    for (const u of users.data?.items ?? []) if (u.orgId) ids.add(u.orgId)
+    return [...ids]
+  }, [orgId, users.data])
+  const departmentQueries = useDepartmentsByOrg(pageOrgIds)
+  const departmentsOf = (id: string | null): Department[] | undefined => {
+    const i = id ? pageOrgIds.indexOf(id) : -1
+    return i < 0 ? undefined : departmentQueries[i]?.data
+  }
+  const filterDepartments = [...(departmentsOf(orgId ?? null) ?? [])].sort(
+    (a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name, 'vi'),
+  )
+  const departmentLabel = (u: UserAccount) => {
+    if (!u.departmentId) return NO_DEPARTMENT_LABEL
+    return departmentsOf(u.orgId)?.find((d) => d.id === u.departmentId)?.name ?? 'Phòng ban không rõ'
+  }
   const roles = isSystem ? SYSTEM_ROLES : ORG_ASSIGNABLE_ROLES
 
   const orgName = (id: string | null) => {
@@ -64,6 +104,25 @@ export function UsersManager({ scope, selfId, title }: { scope: UsersScope; self
     } else {
       toast.error(`Không thực hiện được: ${err.message}`)
     }
+  }
+
+  function onChangeDepartment(u: UserAccount, value: string) {
+    const departmentId = value === NO_DEPARTMENT ? null : value
+    if (departmentId === u.departmentId) return
+    setDepartment.mutate(
+      { id: u.id, departmentId },
+      {
+        onSuccess: () => toast.success(departmentId ? 'Đã đổi phòng ban.' : 'Đã bỏ nhân viên khỏi phòng ban.'),
+        onError: (e) => {
+          const { message, stale } = departmentError(e)
+          toast.error(message)
+          if (stale) {
+            void refresh()
+            void queryClient.invalidateQueries({ queryKey: ['organization'] })
+          }
+        },
+      },
+    )
   }
 
   function onChangeRole(u: UserAccount, role: Role) {
@@ -98,26 +157,52 @@ export function UsersManager({ scope, selfId, title }: { scope: UsersScope; self
         <Button onClick={() => setAddOpen(true)}>{isSystem ? 'Thêm người dùng' : 'Thêm nhân viên'}</Button>
       </div>
 
+      {!isSystem && (
+        <div className="flex items-center gap-2">
+          <Label htmlFor="user-department-filter" className="text-muted-foreground">
+            Phòng ban
+          </Label>
+          <Select
+            value={departmentFilter}
+            onValueChange={(v) => {
+              setDepartmentFilter(v)
+              setPage(0)
+            }}
+          >
+            <SelectTrigger id="user-department-filter" className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_DEPARTMENTS}>Tất cả phòng ban</SelectItem>
+              {filterDepartments.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                  {d.active ? '' : ' (ngừng dùng)'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <PagedTable
         query={users}
         page={page}
         onPage={setPage}
-        emptyText={isSystem ? 'Chưa có người dùng nào.' : 'Chưa có nhân viên nào.'}
+        emptyText={
+          departmentFilter !== ALL_DEPARTMENTS
+            ? 'Phòng ban này chưa có nhân viên nào.'
+            : isSystem
+              ? 'Chưa có người dùng nào.'
+              : 'Chưa có nhân viên nào.'
+        }
         errorLabel={isSystem ? 'Không tải được danh sách người dùng' : 'Không tải được danh sách nhân viên'}
         header={
           <TableRow>
-            {/* Phạm vi system có thêm cột Tổ chức: gộp Tên + Email vào một ô để vừa 1024px */}
-            {isSystem ? (
-              <>
-                <TableHead>Người dùng</TableHead>
-                <TableHead>Tổ chức</TableHead>
-              </>
-            ) : (
-              <>
-                <TableHead>Tên</TableHead>
-                <TableHead>Email</TableHead>
-              </>
-            )}
+            {/* Gộp Tên + Email vào một ô để thêm cột Phòng ban mà vẫn vừa 1024px */}
+            <TableHead>Người dùng</TableHead>
+            {isSystem && <TableHead>Tổ chức</TableHead>}
+            <TableHead>Phòng ban</TableHead>
             <TableHead>Vai trò</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Thao tác</TableHead>
@@ -134,22 +219,42 @@ export function UsersManager({ scope, selfId, title }: { scope: UsersScope; self
           const who = u.name || u.email
           return (
             <TableRow key={u.id}>
-              {isSystem ? (
-                <>
-                  <TableCell className="whitespace-normal [overflow-wrap:anywhere]">
-                    <div>{u.name || '—'}</div>
-                    <div className="text-xs text-muted-foreground">{u.email}</div>
-                  </TableCell>
-                  <TableCell className={`whitespace-normal ${u.orgId ? '' : 'text-muted-foreground'}`}>
-                    {orgName(u.orgId)}
-                  </TableCell>
-                </>
-              ) : (
-                <>
-                  <TableCell>{u.name || '—'}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                </>
+              <TableCell className="whitespace-normal [overflow-wrap:anywhere]">
+                <div>{u.name || '—'}</div>
+                <div className="text-xs text-muted-foreground">{u.email}</div>
+              </TableCell>
+              {isSystem && (
+                <TableCell className={`whitespace-normal ${u.orgId ? '' : 'text-muted-foreground'}`}>
+                  {orgName(u.orgId)}
+                </TableCell>
               )}
+              <TableCell className={`whitespace-normal ${u.departmentId ? '' : 'text-muted-foreground'}`}>
+                {isSystem || locked || !u.orgId ? (
+                  <span title={locked}>{departmentLabel(u)}</span>
+                ) : (
+                  <Select
+                    value={u.departmentId ?? NO_DEPARTMENT}
+                    onValueChange={(v) => onChangeDepartment(u, v)}
+                    disabled={busy || departmentsOf(u.orgId) === undefined}
+                  >
+                    <SelectTrigger size="sm" className="w-44" aria-label={`Đổi phòng ban của ${who}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_DEPARTMENT}>{NO_DEPARTMENT_LABEL}</SelectItem>
+                      {(departmentsOf(u.orgId) ?? [])
+                        // Chỉ phòng ban đang dùng; nếu người này đang ở phòng ban đã ngừng thì vẫn hiện để biết, không chọn lại được.
+                        .filter((d) => d.active || d.id === u.departmentId)
+                        .map((d) => (
+                          <SelectItem key={d.id} value={d.id} disabled={!d.active}>
+                            {d.name}
+                            {d.active ? '' : ' (ngừng dùng)'}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </TableCell>
               <TableCell>
                 {locked ? (
                   <span title={locked}>{roleLabel(u.role)}</span>

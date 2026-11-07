@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient } f
 import { lastDays } from '@/lib/time'
 import type { AlertItem, Paged } from './alerts'
 import { request } from './client'
-import type { Summary } from './stats'
+import type { Bucket, HeatmapCell, Summary } from './stats'
 
 // ORG_ADMIN có orgId – team-sync mục 4.5 và 4.6. `enabled` = false khi tài khoản chưa thuộc tổ chức nào (không gọi API).
 
@@ -16,14 +16,47 @@ export function useOrgSummary(days: number, enabled = true) {
 
 export const ORG_ALERTS_PAGE_SIZE = 10
 
-/** Cảnh báo của mọi thành viên, mới nhất trước. Có `userId`, `deviceId` để biết của ai. */
-export function useOrgAlerts(days: number, page: number, enabled = true) {
+/** Giống `/stats/me/timeseries`, gộp cả tổ chức. */
+export function useOrgTimeseries(days: number, bucket: 'hour' | 'day' = 'day', enabled = true) {
   return useQuery({
-    queryKey: ['alerts', 'org', days, page],
+    queryKey: ['stats', 'org', 'timeseries', days, bucket],
+    queryFn: () =>
+      request<Bucket[]>({ url: '/stats/org/timeseries', params: { ...lastDays(days), bucket } }),
+    enabled,
+  })
+}
+
+/** Giống `/stats/me/heatmap`, gộp cả tổ chức: luôn 168 ô. `weeks` 1–12. */
+export function useOrgHeatmap(weeks: number, enabled = true) {
+  return useQuery({
+    queryKey: ['stats', 'org', 'heatmap', weeks],
+    queryFn: () => request<HeatmapCell[]>({ url: '/stats/org/heatmap', params: { weeks } }),
+    enabled,
+  })
+}
+
+/** Một nhân viên có số liệu trong khoảng (team-sync 4.6). Tên và phòng ban lấy từ GET /users. */
+export interface OrgMember extends Summary {
+  userId: string
+}
+
+/** Mỗi nhân viên một dòng, ngồi sai nhiều nhất trước. */
+export function useOrgMembers(days: number, enabled = true) {
+  return useQuery({
+    queryKey: ['stats', 'org', 'members', days],
+    queryFn: () => request<OrgMember[]>({ url: '/stats/org/members', params: lastDays(days) }),
+    enabled,
+  })
+}
+
+/** Cảnh báo của mọi thành viên, mới nhất trước. Có `userId`, `deviceId` để biết của ai. `userId`: chỉ một nhân viên. */
+export function useOrgAlerts(days: number, page: number, enabled = true, userId?: string) {
+  return useQuery({
+    queryKey: ['alerts', 'org', days, page, userId ?? null],
     queryFn: () =>
       request<Paged<AlertItem>>({
         url: '/alerts/org',
-        params: { ...lastDays(days), page, size: ORG_ALERTS_PAGE_SIZE },
+        params: { ...lastDays(days), page, size: ORG_ALERTS_PAGE_SIZE, userId },
       }),
     placeholderData: keepPreviousData,
     enabled,
@@ -115,6 +148,16 @@ export function useSetOrganizationStatus() {
         data: { active },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ORGS_KEY }),
+  })
+}
+
+/** Phòng ban của nhiều tổ chức (SYS_ADMIN xem bảng người dùng nhiều tổ chức); dùng chung cache với `useDepartments`. */
+export function useDepartmentsByOrg(orgIds: string[]) {
+  return useQueries({
+    queries: orgIds.map((id) => ({
+      queryKey: [...ORG_KEY, id, 'departments'],
+      queryFn: () => request<Department[]>({ url: `/organizations/${encodeURIComponent(id)}/departments` }),
+    })),
   })
 }
 
