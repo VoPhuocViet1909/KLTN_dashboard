@@ -9,13 +9,24 @@ const weekdayFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: VN_TZ, weekday: 
 interface Point {
   start: string
   score: number | null
-  badMinutes: number
+  badMinutes: number | null
   presenceMinutes: number
   alerts: number
 }
 
-/** Điểm tư thế theo ngày, thang 0–100. Một chuỗi nên không có chú giải; tiêu đề nằm ở trang. */
-export function ScoreTrend({ data, days }: { data: Bucket[]; days: number }) {
+/**
+ * Theo ngày; một chuỗi nên không có chú giải, tiêu đề nằm ở trang.
+ * `metric="score"` (mặc định): điểm tư thế, thang 0–100. `metric="badMinutes"`: số phút ngồi sai mỗi ngày.
+ */
+export function ScoreTrend({
+  data,
+  days,
+  metric = 'score',
+}: {
+  data: Bucket[]
+  days: number
+  metric?: 'score' | 'badMinutes'
+}) {
   // Backend chỉ trả ngày có dữ liệu; điền đủ mọi ngày để ngày trống hiện thành khoảng hở, không bị nối liền.
   const byDay = new Map(data.map((b) => [new Date(b.start).toISOString(), b]))
   const points: Point[] = vnDayStarts(days).map((start) => {
@@ -23,7 +34,7 @@ export function ScoreTrend({ data, days }: { data: Bucket[]; days: number }) {
     return {
       start,
       score: b?.meanScore == null ? null : Math.round(b.meanScore),
-      badMinutes: Math.round(b?.badMinutes ?? 0),
+      badMinutes: b ? Math.round(b.badMinutes) : null,
       presenceMinutes: Math.round(b?.presenceMinutes ?? 0),
       alerts: b ? sumAlerts(b.alerts) : 0,
     }
@@ -43,8 +54,9 @@ export function ScoreTrend({ data, days }: { data: Bucket[]; days: number }) {
             minTickGap={16}
           />
           <YAxis
-            domain={[0, 100]}
-            ticks={[0, 25, 50, 75, 100]}
+            domain={metric === 'score' ? [0, 100] : [0, 'auto']}
+            ticks={metric === 'score' ? [0, 25, 50, 75, 100] : undefined}
+            allowDecimals={false}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
             axisLine={false}
             tickLine={false}
@@ -57,8 +69,8 @@ export function ScoreTrend({ data, days }: { data: Bucket[]; days: number }) {
               return (
                 <div className="rounded-md border bg-background px-3 py-2 text-sm shadow-sm">
                   <div className="font-medium">{weekdayFmt.format(new Date(p.start))}</div>
-                  {p.score === null && <div className="mt-1 text-muted-foreground">Không có dữ liệu</div>}
-                  {p.score !== null && <div className="tabular mt-1 grid grid-cols-[auto_auto] gap-x-4 text-muted-foreground">
+                  {p.presenceMinutes === 0 && <div className="mt-1 text-muted-foreground">Không có dữ liệu</div>}
+                  {p.presenceMinutes > 0 && <div className="tabular mt-1 grid grid-cols-[auto_auto] gap-x-4 text-muted-foreground">
                     <span>Điểm tư thế</span>
                     <span className="text-right text-foreground">{p.score ?? '—'}</span>
                     <span>Phút ngồi sai</span>
@@ -74,7 +86,7 @@ export function ScoreTrend({ data, days }: { data: Bucket[]; days: number }) {
           />
           <Line
             type="monotone"
-            dataKey="score"
+            dataKey={metric}
             stroke="var(--chart-1)"
             strokeWidth={2}
             dot={{ r: 4, fill: 'var(--chart-1)', stroke: 'var(--background)', strokeWidth: 2 }}

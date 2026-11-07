@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth/context'
 import { NameCreateForm } from '@/components/NameCreateForm'
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toApiError } from '@/lib/api/errors'
+import { useDepartmentMemberCounts } from '@/lib/api/users'
 import {
   useCreateDepartment,
   useDepartments,
@@ -39,6 +41,7 @@ function OrgDepartments({ orgId }: { orgId: string }) {
       ),
     [departments.data],
   )
+  const counts = useDepartmentMemberCounts(rows.map((d) => d.id))
 
   async function addDepartment(name: string): Promise<string | null> {
     try {
@@ -79,7 +82,9 @@ function OrgDepartments({ orgId }: { orgId: string }) {
           {org.isPending ? 'Đang tải…' : (org.data?.name ?? 'Không tải được tên tổ chức')}
           {org.data && !org.data.active && ' · đang tạm ngưng'}
         </p>
-        <p className="text-xs text-muted-foreground">Hiện chưa gán được nhân viên vào phòng ban.</p>
+        <p className="text-xs text-muted-foreground">
+          Gán nhân viên vào phòng ban ở trang <Link to="/org/users" className="text-primary underline underline-offset-2">Nhân viên</Link>.
+        </p>
       </div>
 
       <section className="rounded-xl border bg-background">
@@ -109,15 +114,19 @@ function OrgDepartments({ orgId }: { orgId: string }) {
               <TableRow>
                 <TableHead>Tên</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Nhân viên</TableHead>
                 <TableHead>Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((d) => (
+              {rows.map((d, i) => (
                 <TableRow key={d.id}>
                   <TableCell className={d.active ? '' : 'text-muted-foreground'}>{d.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{d.active ? 'Đang dùng' : 'Ngừng dùng'}</Badge>
+                  </TableCell>
+                  <TableCell className="tabular text-right" aria-label={`${d.name}: số nhân viên`}>
+                    {counts[i]?.isError ? '—' : (counts[i]?.data ?? '…')}
                   </TableCell>
                   <TableCell>
                     {d.active ? (
