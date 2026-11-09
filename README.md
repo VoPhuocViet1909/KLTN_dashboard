@@ -1,5 +1,7 @@
 # KLTN Dashboard
 
+Nhánh `feat/software-expansion-m1`: menu **Theo dõi tiến bộ** (`/progress`) có báo cáo/CSV, mục tiêu, nghỉ tự xác nhận, phản hồi và so sánh trước/sau. Cần backend cùng nhánh và migration mới; build/lint đã kiểm, browser/API thật còn chờ theo `DoAnTotNghiep_BE/docs/software-expansion-v1/RETEST-M1.md` trong workspace.
+
 Web Dashboard của hệ thống giám sát tư thế ngồi: thống kê cá nhân, lịch sử cảnh báo, trạng thái realtime,
 quản lý tổ chức. API và quy tắc nhóm: xem `team-sync` ở repo backend (`AGENTS.md` có đường dẫn).
 
