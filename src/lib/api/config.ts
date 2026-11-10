@@ -8,6 +8,15 @@ import { request } from './client'
 export type ConfigValues = Record<string, number | boolean | string | null>
 
 export const CONFIG_QUERY_KEY = ['config', 'me'] as const
+const DETAILS_QUERY_KEY = [...CONFIG_QUERY_KEY, 'details'] as const
+export type ConfigDetails = { personal: ConfigValues; organization: ConfigValues; effective: ConfigValues }
+
+export function useMyConfigDetails() {
+  return useQuery({
+    queryKey: DETAILS_QUERY_KEY,
+    queryFn: () => request<ConfigDetails>({ url: '/config/me/details' }),
+  })
+}
 
 export function useMyConfig() {
   return useQuery({
@@ -21,7 +30,10 @@ export function useSaveMyConfig() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: ConfigValues) => request<ConfigValues>({ method: 'PUT', url: '/config/me', data: body }),
-    onSuccess: (effective) => qc.setQueryData(CONFIG_QUERY_KEY, effective),
+    onSuccess: async (effective) => {
+      qc.setQueryData(CONFIG_QUERY_KEY, effective)
+      await qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
+    },
   })
 }
 
@@ -29,7 +41,10 @@ export function useSaveMyConfig() {
 export function useConfigRealtime() {
   const qc = useQueryClient()
   useRealtimeEvent<ConfigValues>('config', (cfg) => {
-    if (cfg && typeof cfg === 'object') qc.setQueryData(CONFIG_QUERY_KEY, cfg)
+    if (cfg && typeof cfg === 'object') {
+      qc.setQueryData(CONFIG_QUERY_KEY, cfg)
+      void qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
+    }
   })
 }
 

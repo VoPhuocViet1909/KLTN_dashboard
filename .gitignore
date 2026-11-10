@@ -30,3 +30,6 @@ dist-ssr
 
 # skill cài riêng trên máy
 .claude/skills/ui-ux-pro-max/
+
+# Local browser UI checks
+.ui-check/

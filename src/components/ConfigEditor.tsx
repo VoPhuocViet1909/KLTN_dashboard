@@ -16,8 +16,9 @@ import { CONFIG_FIELDS, FIELD_BY_KEY, GROUPS, type ConfigField } from '@/lib/con
 export interface ConfigEditorProps {
   title: string
   subtitle: string
-  /** kết quả GET: cấu hình đang lưu (cá nhân: đã gộp; tổ chức: đúng khóa tổ chức) */
+  /** Chỉ các khóa thuộc phạm vi đang sửa, không dùng cấu hình đã gộp. */
   query: { data: ConfigValues | undefined; error: Error | null; isPending: boolean }
+  inherited?: ConfigValues
   /** mutation PUT thay toàn bộ */
   save: { mutate: (body: ConfigValues, options: { onSuccess: () => void; onError: (e: unknown) => void }) => void; isPending: boolean }
   /** khóa riêng máy không hiện nhưng phải gửi lại (cá nhân: hiệu chỉnh camera; tổ chức: không có) */
@@ -37,6 +38,7 @@ export function ConfigEditor({
   title,
   subtitle,
   query,
+  inherited,
   save,
   preserveKeys,
   savedMessage,
@@ -47,7 +49,7 @@ export function ConfigEditor({
   const server = query.data
 
   const baseline = useMemo(() => draftFromServer(server), [server])
-  const serverKey = useMemo(() => stableKey(server), [server])
+  const serverKey = useMemo(() => stableKey(server) + stableKey(inherited), [server, inherited])
 
   // draft = null: form theo đúng server. Có draft: người dùng đang sửa; `draftBase` là bản server lúc bắt đầu sửa.
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -61,7 +63,7 @@ export function ConfigEditor({
   const changes = draft ? changedKeys(draft, baseline) : []
   const dirty = changes.length > 0
   const conflict = draft !== null && draftBase !== serverKey
-  const clientErrors = useMemo(() => validateDraft(current), [current])
+  const clientErrors = useMemo(() => validateDraft(current, inherited), [current, inherited])
   const errors = { ...serverErrors, ...clientErrors }
   const hasErrors = Object.keys(clientErrors).length > 0
   const hasCustom = Object.keys(current).length > 0 || Object.keys(baseline).length > 0
@@ -131,7 +133,7 @@ export function ConfigEditor({
   }
 
   const onSave = () => {
-    if (!hasErrors) send(buildBody(current, server, preserveKeys), savedMessage)
+    if (!hasErrors && !conflict) send(buildBody(current, server, preserveKeys), savedMessage)
   }
 
   return (
@@ -141,7 +143,7 @@ export function ConfigEditor({
           <h1 className="text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <Button variant="outline" size="sm" disabled={!hasCustom || save.isPending} onClick={() => setConfirmClear(true)}>
+        <Button variant="outline" size="sm" disabled={!hasCustom || save.isPending || !!query.error || conflict} onClick={() => setConfirmClear(true)}>
           Xóa mọi tùy chỉnh
         </Button>
       </div>
@@ -207,6 +209,7 @@ export function ConfigEditor({
                         key={f.key}
                         field={f}
                         value={current[f.key]}
+                        inherited={inherited?.[f.key]}
                         error={errors[f.key]}
                         onChange={(v) => edit(f.key, v)}
                         onReset={() => resetField(f.key)}
@@ -235,7 +238,7 @@ export function ConfigEditor({
             <Button variant="outline" onClick={discard} disabled={save.isPending}>
               Hủy
             </Button>
-            <Button onClick={onSave} disabled={hasErrors || save.isPending}>
+            <Button onClick={onSave} disabled={hasErrors || save.isPending || conflict || !!query.error}>
               {save.isPending ? 'Đang lưu…' : 'Lưu cấu hình'}
             </Button>
           </div>
@@ -287,19 +290,23 @@ export function ConfigEditor({
 function Field({
   field: f,
   value,
+  inherited,
   error,
   onChange,
   onReset,
 }: {
   field: ConfigField
   /** undefined = Mặc định */
-  value: string | boolean | undefined
+  value: string | boolean | null | undefined
+  inherited: ConfigValues[string] | undefined
   error: string | undefined
   onChange: (value: string | boolean) => void
   onReset: () => void
 }) {
   const id = `cfg-${f.key}`
   const custom = value !== undefined
+  const fallback = inherited === undefined ? f.default : inherited
+  const displayed = custom ? value : fallback
   const describedBy = `${id}-hint${error ? ` ${id}-error` : ''}`
 
   return (
@@ -308,10 +315,10 @@ function Field({
         <Label htmlFor={id}>{f.label}</Label>
         {custom ? (
           <Button type="button" variant="ghost" size="xs" className="-my-1 text-muted-foreground" onClick={onReset}>
-            Về mặc định
+            {inherited === undefined ? 'Về mặc định' : 'Theo tổ chức'}
           </Button>
         ) : (
-          <span className="text-xs text-muted-foreground">Mặc định</span>
+          <span className="text-xs text-muted-foreground">{inherited === undefined ? 'Mặc định' : 'Theo tổ chức'}</span>
         )}
       </div>
 
@@ -319,12 +326,12 @@ function Field({
         <div className="flex items-center gap-3">
           <Switch
             id={id}
-            checked={custom ? Boolean(value) : Boolean(f.default)}
+            checked={Boolean(displayed)}
             onCheckedChange={onChange}
             aria-describedby={describedBy}
           />
           <span className={`text-sm ${custom ? '' : 'text-muted-foreground'}`}>
-            {(custom ? Boolean(value) : Boolean(f.default)) ? 'Bật' : 'Tắt'}
+            {displayed ? 'Bật' : 'Tắt'}
           </span>
         </div>
       ) : (
@@ -337,7 +344,7 @@ function Field({
             min={f.min}
             max={f.max}
             className={`tabular ${f.unit ? 'pr-14' : ''} ${custom ? '' : 'text-muted-foreground'}`}
-            value={custom ? String(value) : f.default === null ? '' : String(f.default)}
+            value={displayed === null ? '' : String(displayed)}
             placeholder={f.defaultText}
             onChange={(e) => onChange(e.target.value)}
             aria-invalid={!!error}

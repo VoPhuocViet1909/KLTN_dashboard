@@ -8,11 +8,13 @@ import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage } from '@/pages/misc'
 import { OrgDepartmentsPage } from '@/pages/OrgDepartmentsPage'
+import { OrgMembersPage } from '@/pages/OrgMembersPage'
 import { OrgOverviewPage } from '@/pages/OrgOverviewPage'
 import { OrgSettingsPage } from '@/pages/OrgSettingsPage'
 import { OrgUsersPage } from '@/pages/OrgUsersPage'
 import { OverviewPage } from '@/pages/OverviewPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { ProgressPage } from '@/pages/ProgressPage'
 
 export function AppRoutes() {
   return (
@@ -26,11 +28,13 @@ export function AppRoutes() {
           <Route path="habits" element={<HabitsPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="progress" element={<ProgressPage />} />
 
           {/* Tổ chức – ORG_ADMIN */}
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>
             <Route path="org" element={<OrgOverviewPage />} />
             <Route path="org/users" element={<OrgUsersPage />} />
+            <Route path="org/members" element={<OrgMembersPage />} />
             <Route path="org/departments" element={<OrgDepartmentsPage />} />
             <Route path="org/settings" element={<OrgSettingsPage />} />
           </Route>
