@@ -7,7 +7,7 @@ import { DepartmentComparison } from '@/components/DepartmentComparison'
 import { Fact } from '@/components/Fact'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { PagedTable } from '@/components/PagedTable'
-import { StateBadge } from '@/components/StateBadge'
+import { ObservationBadge } from '@/components/ObservationBadge'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableCell, TableHead, TableRow } from '@/components/ui/table'
@@ -25,15 +25,15 @@ import { sumAlerts, type HeatmapCell } from '@/lib/api/stats'
 import { displayUser, useUserDirectory } from '@/lib/api/users'
 import { alertEndLabel, alertLabel } from '@/lib/labels'
 import { formatDateTime, formatDuration } from '@/lib/time'
-import { useRealtimeEvent } from '@/realtime/hooks'
-import type { DeviceState, StatusEvent } from '@/realtime/socket'
+import { useDeviceObservations } from '@/realtime/observations'
+import type { ObservationState } from '@/realtime/observation'
 
 const RANGES = [
   { days: 7, label: '7 ngày' },
   { days: 30, label: '30 ngày' },
 ]
 
-const STATES: DeviceState[] = ['GOOD', 'BAD', 'AWAY', 'OFFLINE']
+const STATES: ObservationState[] = ['GOOD', 'BAD', 'AWAY', 'CALIBRATING', 'UNKNOWN', 'CAMERA_LOST', 'OFFLINE']
 
 export function OrgOverviewPage() {
   const { user } = useAuth()
@@ -57,11 +57,10 @@ function OrgOverview({ orgId }: { orgId: string }) {
   const nameOf = (userId: string) => displayUser(directory.data, userId)
 
   // ORG_ADMIN tự ở room org:{orgId}; giữ trạng thái mới nhất theo máy từ lúc mở trang.
-  const [devices, setDevices] = useState<Record<string, StatusEvent>>({})
-  useRealtimeEvent<StatusEvent>('status', (e) => setDevices((d) => ({ ...d, [`${e.userId}/${e.deviceId}`]: e })))
-  const deviceList = Object.values(devices)
+  const { user } = useAuth()
+  const deviceList = useDeviceObservations(user?.id, orgId)
   const bad = deviceList.filter((d) => d.state === 'BAD').sort((a, b) => b.ts.localeCompare(a.ts))
-  const countOf = (state: DeviceState) => deviceList.filter((d) => d.state === state).length
+  const countOf = (state: ObservationState) => deviceList.filter((d) => d.state === state).length
 
   const s = summary.data
   const badShare = s && s.presenceMinutes > 0 ? Math.round((s.badMinutes / s.presenceMinutes) * 100) : null
@@ -181,13 +180,13 @@ function OrgOverview({ orgId }: { orgId: string }) {
               <ul className="flex flex-wrap gap-x-8 gap-y-3">
                 {STATES.map((st) => (
                   <li key={st} className="flex items-center gap-2">
-                    <StateBadge state={st} />
+                    <ObservationBadge state={st} />
                     <span className="tabular text-sm text-muted-foreground">{countOf(st)} máy</span>
                   </li>
                 ))}
               </ul>
               {bad.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Không ai đang ngồi sai.</p>
+                <p className="text-sm text-muted-foreground">Chưa có quan sát ngồi sai còn hạn trong các thiết bị đã nhận.</p>
               ) : (
                 <ul className="divide-y text-sm">
                   {bad.map((d) => (

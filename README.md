@@ -1,5 +1,7 @@
 # KLTN Dashboard
 
+Nhánh `feat/config-offline-history` (13/11/2026): **Cấu hình → Đồng bộ cấu hình** đối chiếu phiên bản server với xác nhận còn hiệu lực của từng desktop. Lưu thành công chưa đồng nghĩa desktop đã nạp; mất socket/hết hạn sẽ hiện chưa xác minh. Cần backend và desktop cùng hỗ trợ snapshot/ack. Đã kiểm build/lint và REST/Socket.IO giả lập, chưa nghiệm thu stack thật.
+
    Bản đồ mã cho AI và sơ đồ kiến trúc: [docs/architecture.md](docs/architecture.md).
 
 Web Dashboard của hệ thống giám sát tư thế ngồi: thống kê cá nhân, lịch sử cảnh báo, trạng thái realtime,
@@ -82,3 +84,9 @@ Kiểm ngày 18/10/2026: native WebRTC side decode 640×360, gia hạn sau hơn 
 | `npm run build` | kiểm kiểu + build ra `dist/` |
 | `npm run lint` | oxlint |
 | `npm run preview` | xem bản build |
+# Trạng thái quan sát — A1, 13/11/2026
+
+Nhánh `feat/device-observation` dùng Socket.IO `device-state` version 1 từ notification-service tương ứng để hiển thị hiệu chỉnh, chưa đủ dữ liệu và mất camera ở Tổng quan cá nhân/tổ chức. Hết hạn 15 giây hoặc mất kết nối chuyển OFFLINE; dữ liệu `status` cũ chưa đủ căn cứ để suy ngồi đúng. Không đổi ngữ nghĩa `status` v1 cho client cũ. Bộ giả lập dùng cùng fixture `dev/device-observation-v1.json`; kiểm thuần bằng `node dev/check-device-observation.mjs` (Node hiện có hỗ trợ đọc TypeScript). Build/lint và Edge với REST/Socket.IO giả lập đã đạt; Redis/Gateway/webcam thật còn chờ.
+# Xem camera từ desktop — 13/11/2026
+
+Nhánh `feat/live-camera-setup`: Tổng quan → Camera của bạn cho nhập mã thiết bị thủ công khi danh sách realtime chưa có. Trên desktop cùng tài khoản, cấu hình máy chủ video rồi bấm Bật chia sẻ; lấy mã ngay tại mục Chia sẻ camera lên web. Chọn cùng góc camera trên web và bấm Xem camera. Chọn thiết bị/góc được khóa trong lúc xem; Dừng hoặc đăng xuất đóng peer và phiên WHEP. Backend vẫn dùng media-token owner-only và MediaMTX/WebRTC hiện có, không cần endpoint video mới. VITE_MEDIA_BASE_URL mặc định cùng hostname ở cổng 8889; media phải có HTTPS khi web là HTTPS. Build/lint và 8 browser checks với media giả lập đạt; chưa kiểm webcam/MediaMTX/LAN thật trong đợt này.

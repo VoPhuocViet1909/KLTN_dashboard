@@ -5,14 +5,14 @@ import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { ScoreTrend } from '@/components/charts/ScoreTrend'
 import { Fact } from '@/components/Fact'
 import { PlumbLine } from '@/components/PlumbLine'
-import { StateBadge } from '@/components/StateBadge'
+import { ObservationBadge } from '@/components/ObservationBadge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { sumAlerts, useMySummary, useMyTimeseries } from '@/lib/api/stats'
 import { alertLabel } from '@/lib/labels'
 import { formatDateTime } from '@/lib/time'
-import { useRealtimeEvent } from '@/realtime/hooks'
-import type { StatusEvent } from '@/realtime/socket'
+import { useDeviceObservations } from '@/realtime/observations'
+import { plumbState } from '@/realtime/observation'
 
 const RANGES = [
   { days: 7, label: '7 ngày' },
@@ -25,11 +25,7 @@ export function OverviewPage() {
   const summary = useMySummary(days)
   const series = useMyTimeseries(days, 'day')
 
-  const [devices, setDevices] = useState<Record<string, StatusEvent>>({})
-  useRealtimeEvent<StatusEvent>('status', (e) => {
-    if (e.userId === user?.id) setDevices((d) => ({ ...d, [e.deviceId]: e }))
-  })
-  const deviceList = Object.values(devices).sort((a, b) => b.ts.localeCompare(a.ts))
+  const deviceList = useDeviceObservations(user?.id)
   const current = deviceList[0] ?? null
 
   const s = summary.data
@@ -57,16 +53,17 @@ export function OverviewPage() {
       {/* Hàng đầu: tư thế lúc này (điểm nhấn) + kết quả của khoảng đã chọn */}
       <section className="grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-[18rem_1fr]">
         <div className="flex items-center gap-5 bg-background p-6">
-          <PlumbLine state={current?.state ?? null} />
+          <PlumbLine state={plumbState(current?.state)} />
           <div className="min-w-0 space-y-1.5">
             <h2 className="text-sm text-muted-foreground">Tư thế lúc này</h2>
             {current ? (
               <>
-                <StateBadge state={current.state} />
+                <ObservationBadge state={current.state} />
+                {current.note && <p className="text-sm text-muted-foreground">{current.note}</p>}
                 {current.alertType && <p className="text-sm">{alertLabel(current.alertType)}</p>}
                 <p className="text-xs text-muted-foreground">Cập nhật {formatDateTime(current.ts)}</p>
                 {deviceList.length > 1 && (
-                  <p className="text-xs text-muted-foreground">{deviceList.length} máy đang gửi dữ liệu</p>
+                  <p className="text-xs text-muted-foreground">{deviceList.length} thiết bị đã nhận</p>
                 )}
               </>
             ) : (
