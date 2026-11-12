@@ -82,3 +82,6 @@ Kiểm ngày 18/10/2026: native WebRTC side decode 640×360, gia hạn sau hơn 
 | `npm run build` | kiểm kiểu + build ra `dist/` |
 | `npm run lint` | oxlint |
 | `npm run preview` | xem bản build |
+# Trạng thái quan sát — A1, 13/11/2026
+
+Nhánh `feat/device-observation` dùng Socket.IO `device-state` version 1 từ notification-service tương ứng để hiển thị hiệu chỉnh, chưa đủ dữ liệu và mất camera ở Tổng quan cá nhân/tổ chức. Hết hạn 15 giây hoặc mất kết nối chuyển OFFLINE; dữ liệu `status` cũ chưa đủ căn cứ để suy ngồi đúng. Không đổi ngữ nghĩa `status` v1 cho client cũ. Bộ giả lập dùng cùng fixture `dev/device-observation-v1.json`; kiểm thuần bằng `node dev/check-device-observation.mjs` (Node hiện có hỗ trợ đọc TypeScript). Build/lint và Edge với REST/Socket.IO giả lập đã đạt; Redis/Gateway/webcam thật còn chờ.
