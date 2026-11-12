@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { validObservation, newerObservation, observedDevice, OBSERVATION_LABEL, plumbState } from '../src/realtime/observation.ts'
+import { validObservation, newerObservation, observedDevice, OBSERVATION_LABEL, plumbState, configAcknowledgementText } from '../src/realtime/observation.ts'
 
 const fixture = JSON.parse(readFileSync(new URL('./device-observation-v1.json', import.meta.url)))
 const now = Date.parse('2026-11-12T00:00:00Z')
@@ -23,3 +23,14 @@ assert.equal(plumbState('UNKNOWN'), null)
 assert.equal(plumbState('CAMERA_LOST'), null)
 assert.equal(plumbState('GOOD'), 'GOOD')
 console.log('PASS: shared seven states, expiry/disconnect, invalid packets, ordering and neutral unknown visualization')
+const config = { version: 5, revision: 'a'.repeat(64), state: 'APPLIED', appliedAt: new Date(now).toISOString() }
+const configured = { ...base, config }
+assert(validObservation(configured))
+assert(!validObservation({ ...base, config: { ...config, version: -1 } }))
+assert(!validObservation({ ...base, config: { ...config, state: 'SAVED' } }))
+assert.match(configAcknowledgementText(observedDevice(configured, now, true), config), /Đã nạp cấu hình hiện tại/)
+assert.match(configAcknowledgementText(observedDevice(configured, now, true), { ...config, revision: 'b'.repeat(64) }), /chờ đồng bộ/)
+assert.match(configAcknowledgementText(observedDevice(configured, now + 15000, true), config), /Chưa có xác nhận/)
+assert.match(configAcknowledgementText(observedDevice(configured, now, false), config), /Chưa có xác nhận/)
+assert.match(configAcknowledgementText(observedDevice({ ...base, config: { ...config, state: 'REJECTED', appliedAt: null } }, now, true), config), /từ chối/)
+console.log('PASS: applied/rejected versions, membership revisions and stale acknowledgement handling')

@@ -1,5 +1,7 @@
 # KLTN Dashboard
 
+Nhánh `feat/config-offline-history` (13/11/2026): **Cấu hình → Đồng bộ cấu hình** đối chiếu phiên bản server với xác nhận còn hiệu lực của từng desktop. Lưu thành công chưa đồng nghĩa desktop đã nạp; mất socket/hết hạn sẽ hiện chưa xác minh. Cần backend và desktop cùng hỗ trợ snapshot/ack. Đã kiểm build/lint và REST/Socket.IO giả lập, chưa nghiệm thu stack thật.
+
    Bản đồ mã cho AI và sơ đồ kiến trúc: [docs/architecture.md](docs/architecture.md).
 
 Web Dashboard của hệ thống giám sát tư thế ngồi: thống kê cá nhân, lịch sử cảnh báo, trạng thái realtime,

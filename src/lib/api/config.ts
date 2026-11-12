@@ -9,6 +9,11 @@ export type ConfigValues = Record<string, number | boolean | string | null>
 
 export const CONFIG_QUERY_KEY = ['config', 'me'] as const
 const DETAILS_QUERY_KEY = [...CONFIG_QUERY_KEY, 'details'] as const
+const SNAPSHOT_QUERY_KEY = [...CONFIG_QUERY_KEY, 'snapshot'] as const
+export type ConfigSnapshot = { version: number; revision: string; effective: ConfigValues; servedAt: string }
+export function useMyConfigSnapshot() {
+  return useQuery({ queryKey: SNAPSHOT_QUERY_KEY, queryFn: () => request<ConfigSnapshot>({ url: '/config/me/snapshot' }), refetchInterval: 30_000 })
+}
 export type ConfigDetails = { personal: ConfigValues; organization: ConfigValues; effective: ConfigValues }
 
 export function useMyConfigDetails() {
@@ -33,6 +38,7 @@ export function useSaveMyConfig() {
     onSuccess: async (effective) => {
       qc.setQueryData(CONFIG_QUERY_KEY, effective)
       await qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
+      await qc.invalidateQueries({ queryKey: SNAPSHOT_QUERY_KEY })
     },
   })
 }
@@ -44,6 +50,7 @@ export function useConfigRealtime() {
     if (cfg && typeof cfg === 'object') {
       qc.setQueryData(CONFIG_QUERY_KEY, cfg)
       void qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
+      void qc.invalidateQueries({ queryKey: SNAPSHOT_QUERY_KEY })
     }
   })
 }
