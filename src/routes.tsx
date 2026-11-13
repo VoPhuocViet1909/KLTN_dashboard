@@ -15,6 +15,7 @@ import { OrgUsersPage } from '@/pages/OrgUsersPage'
 import { OverviewPage } from '@/pages/OverviewPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ProgressPage } from '@/pages/ProgressPage'
+import { WorkspacesPage } from '@/pages/WorkspacesPage'
 
 export function AppRoutes() {
   return (
@@ -29,6 +30,7 @@ export function AppRoutes() {
           <Route path="history" element={<HistoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="progress" element={<ProgressPage />} />
+          <Route path="workspaces" element={<WorkspacesPage />} />
 
           {/* Tổ chức – ORG_ADMIN */}
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>

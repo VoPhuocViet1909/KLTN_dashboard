@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProgressQuery, useProgressWrite, progressError, downloadReport, vnDate, dayStart, nextDate, numberText, PROGRESS_LABEL as labels, type Goal, type BreakRecord, type Feedback, type Marker, type Report, type Comparison, type Paged } from '@/lib/api/progress'
 import type { AlertItem } from '@/lib/api/alerts'
+import { useDevicePreferences, useRegisteredDevices } from '@/lib/api/workspaces'
 
 const inputClass = 'min-h-11 rounded-md border bg-background px-3 text-sm'
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="flex min-w-40 flex-col gap-2 text-sm">{label}{children}</label> }
@@ -24,6 +25,8 @@ function SummaryView({ report }: { report: Report }) {
 }
 
 export function ProgressPage() {
+  const devicePreferences = useDevicePreferences(), registeredDevices = useRegisteredDevices()
+  const defaultDevice = registeredDevices.data?.find(item => item.deviceKey === devicePreferences.data?.defaultDeviceKey && item.status === 'ACTIVE')
   const [params, setParams] = useSearchParams()
   const tabs = ['report', 'goals', 'breaks', 'feedback', 'comparison']
   const tab = tabs.includes(params.get('tab') ?? '') ? params.get('tab')! : 'report'
@@ -59,6 +62,7 @@ export function ProgressPage() {
   return <div className="max-w-6xl space-y-8"><div><h1 className="text-2xl font-semibold">Theo dõi tiến bộ</h1><p className="mt-2 text-sm text-muted-foreground">Mục tiêu cá nhân, nghỉ tự xác nhận và thay đổi thói quen theo dữ liệu của bạn.</p></div>
     <div className="flex flex-wrap items-end gap-4"><Field label="Mã thiết bị"><Input maxLength={128} value={device} onChange={(e) => { setDevice(e.target.value); setPage(0); setEditingFeedback(null); setComparisonRequest(null) }} placeholder="Mã thiết bị của Desktop App" /></Field><Field label="Từ ngày (giờ Việt Nam)"><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Field><Field label="Đến hết ngày"><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field><Button variant="outline" onClick={() => void activeQuery.refetch()} disabled={!valid || activeQuery.isFetching}>Tải lại</Button></div>
     {!valid && tab !== 'goals' && <p className="text-sm">Nhập mã thiết bị và khoảng ngày hợp lệ, tối đa 92 ngày.</p>}
+    {defaultDevice && <Button className="min-h-11" variant="outline" onClick={() => { setDevice(defaultDevice.deviceId); setPage(0); setEditingFeedback(null); setComparisonRequest(null) }}>{defaultDevice.name} ({defaultDevice.deviceId})</Button>}
     <Tabs value={tab} onValueChange={(value) => { setParams({ tab: value, device }); setPage(0); setError(''); setSuccess('') }}><TabsList className="flex h-auto flex-wrap" aria-label="Chức năng theo dõi">{tabs.map((key, i) => <TabsTrigger key={key} value={key}>{['Báo cáo', 'Mục tiêu', 'Nghỉ', 'Phản hồi', 'So sánh'][i]}</TabsTrigger>)}</TabsList></Tabs>
     {activeQuery.isFetching && <p role="status">Đang tải dữ liệu…</p>}{activeQuery.isError && <p role="alert" className="text-destructive">{progressError(activeQuery.error)}</p>}{error && <p role="alert" className="text-destructive">{error}</p>}{success && <p role="status">{success}</p>}
     {tab !== 'report' && <div className="flex items-center gap-3"><Button variant="outline" disabled={page === 0 || activeQuery.isFetching} onClick={() => setPage(page - 1)}>Trang trước</Button><span className="text-sm">Trang {page + 1}</span><Button variant="outline" disabled={activeQuery.isFetching || !activeQuery.data || !('total' in activeQuery.data) || (page + 1) * 100 >= activeQuery.data.total} onClick={() => setPage(page + 1)}>Trang sau</Button></div>}
