@@ -16,6 +16,7 @@ import { OverviewPage } from '@/pages/OverviewPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ProgressPage } from '@/pages/ProgressPage'
 import { WorkspacesPage } from '@/pages/WorkspacesPage'
+import { DiagnosticsPage } from '@/pages/DiagnosticsPage'
 
 export function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export function AppRoutes() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="progress" element={<ProgressPage />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
+          <Route path="diagnostics" element={<DiagnosticsPage />} />
 
           {/* Tổ chức – ORG_ADMIN */}
           <Route element={<RequireAuth roles={['ORG_ADMIN']} />}>

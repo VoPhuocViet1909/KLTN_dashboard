@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node dev/check-device-observation.mjs",
+    "test": "node dev/check-device-observation.mjs && node dev/check-device-diagnostics.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
