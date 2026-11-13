@@ -80,7 +80,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   // --- Nghỉ ngơi
   {
     key: 'sit_limit_min', label: 'Nhắc đứng dậy sau', group: 'rest', kind: 'number', unit: 'phút',
-    min: 0, max: 240, default: 30, hint: 'Ngồi liên tục bấy lâu thì nhắc vận động. Nghiên cứu khuyên đứng dậy mỗi 30–60 phút. Đặt 0 để tắt.',
+    min: 0, max: 240, default: 30, hint: 'Ngồi liên tục bấy lâu thì nhắc vận động. Chọn lịch phù hợp công việc. Đặt 0 để tắt.',
   },
   {
     key: 'sit_repeat_min', label: 'Nhắc đứng dậy lặp lại mỗi', group: 'rest', kind: 'number', unit: 'phút',
@@ -88,7 +88,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   },
   {
     key: 'eye_break_min', label: 'Nhắc nghỉ mắt mỗi', group: 'rest', kind: 'number', unit: 'phút',
-    min: 0, max: 120, default: 20, hint: 'Cứ ngồi bấy lâu thì nhắc nhìn xa vài chục giây, theo quy tắc 20-20-20. Đặt 0 để tắt.',
+    min: 0, max: 120, default: 20, hint: 'Nhắc nghỉ mắt sau khoảng thời gian này khi có mặt trước camera; ứng dụng không đo thời gian mắt nhìn màn hình. Đặt 0 để tắt.',
   },
   {
     key: 'away_sec', label: 'Coi là vắng mặt sau', group: 'rest', kind: 'number', unit: 'giây',

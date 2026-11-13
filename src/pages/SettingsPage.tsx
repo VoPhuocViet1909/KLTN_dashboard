@@ -1,5 +1,5 @@
 import { ConfigEditor } from '@/components/ConfigEditor'
-import { useConfigRealtime, useMyConfigDetails, useMyConfigSnapshot, useSaveMyConfig } from '@/lib/api/config'
+import { useConfigRecommendations, useConfigRealtime, useMyConfigDetails, useMyConfigSnapshot, useSaveMyConfig } from '@/lib/api/config'
 import { PRESERVED_KEYS } from '@/lib/configFields'
 import { useAuth } from '@/auth/context'
 import { useDeviceObservations } from '@/realtime/observations'
@@ -11,6 +11,7 @@ export function SettingsPage() {
   useConfigRealtime()
   const query = useMyConfigDetails()
   const save = useSaveMyConfig()
+  const recommendations = useConfigRecommendations()
   const snapshot = useMyConfigSnapshot()
   const { user } = useAuth()
   const devices = useDeviceObservations(user?.id)
@@ -26,6 +27,7 @@ export function SettingsPage() {
       subtitle="Áp dụng cho Desktop App trên mọi máy của bạn."
       query={{ ...query, data: query.data?.personal }}
       inherited={query.data?.organization}
+      recommendations={recommendations}
       save={save}
       preserveKeys={PRESERVED_KEYS}
       savedMessage="Đã lưu trên server; xem xác nhận desktop ở phần đồng bộ"
