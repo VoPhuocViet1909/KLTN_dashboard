@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '@/auth/context'
 import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { Fact } from '@/components/Fact'
+import { DepartmentHistoryPanel } from '@/components/DepartmentHistoryPanel'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { PagedTable } from '@/components/PagedTable'
 import { Badge } from '@/components/ui/badge'
@@ -319,6 +320,8 @@ function MemberDetail({ row, days, onClose }: { row: Row | null; days: number; o
 }
 
 function MemberDetailBody({ row, days }: { row: Row; days: number }) {
+  const { user } = useAuth()
+  const departments = useDepartments(user?.orgId ?? '')
   const [page, setPage] = useState(0)
   const alerts = useOrgAlerts(days, page, true, row.member.userId)
   const m = row.member
@@ -343,6 +346,8 @@ function MemberDetailBody({ row, days }: { row: Row; days: number }) {
         <Fact label="Cảnh báo" value={String(row.alertCount)} />
         <Fact label="Thời gian có mặt" value={formatMinutes(m.presenceMinutes)} />
       </dl>
+
+      <DepartmentHistoryPanel key={m.userId} userId={m.userId} departments={departments.data} />
 
       <section className="space-y-3">
         <h3 className="font-medium">Cảnh báo theo loại</h3>

@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { PagedTable } from '@/components/PagedTable'
+import { DepartmentHistoryPanel } from '@/components/DepartmentHistoryPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -56,6 +57,7 @@ export function UsersManager({
   const [addOpen, setAddOpen] = useState(false)
   const [lockTarget, setLockTarget] = useState<{ user: UserAccount; enable: boolean } | null>(null)
   const [departmentFilter, setDepartmentFilter] = useState(ALL_DEPARTMENTS)
+  const [historyTarget, setHistoryTarget] = useState<UserAccount | null>(null)
 
   const users = useUsers(page, true, departmentFilter === ALL_DEPARTMENTS ? undefined : departmentFilter)
   const orgs = useOrganizations(isSystem)
@@ -254,6 +256,7 @@ export function UsersManager({
                     </SelectContent>
                   </Select>
                 )}
+                <Button type="button" variant="ghost" className="min-h-11 mt-1" onClick={() => setHistoryTarget(u)} aria-label={`Lịch sử phòng ban của ${who}`}>Lịch sử phòng ban</Button>
               </TableCell>
               <TableCell>
                 {locked ? (
@@ -293,6 +296,13 @@ export function UsersManager({
           )
         }}
       />
+
+      <Dialog open={historyTarget !== null} onOpenChange={open => !open && setHistoryTarget(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader><DialogTitle>Lịch sử phòng ban của {historyTarget?.name || historyTarget?.email}</DialogTitle><DialogDescription>Thời điểm hiệu lực được lưu trên máy chủ khi chuyển phòng ban.</DialogDescription></DialogHeader>
+          {historyTarget && <DepartmentHistoryPanel key={historyTarget.id} userId={historyTarget.id} departments={departmentsOf(historyTarget.orgId)} />}
+        </DialogContent>
+      </Dialog>
 
       <AddUserDialog
         open={addOpen}
