@@ -31,6 +31,7 @@ const NAV: NavGroup[] = [
       { to: '/', label: 'Tổng quan', icon: Gauge },
       { to: '/habits', label: 'Thói quen', icon: Grid3x3 },
       { to: '/progress', label: 'Theo dõi tiến bộ', icon: HeartPulse },
+      { to: '/workspaces', label: 'Vị trí và thiết bị', icon: Building2 },
       { to: '/history', label: 'Lịch sử cảnh báo', icon: History },
       { to: '/settings', label: 'Cấu hình', icon: Settings2 },
     ],

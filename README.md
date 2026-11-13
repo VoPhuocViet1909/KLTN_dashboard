@@ -1,5 +1,7 @@
 # KLTN Dashboard
 
+Bước 12/A5, nhánh `feat/workspace-profiles`: trang **Vị trí và thiết bị** (`/workspaces`) tạo/sửa/lưu trữ vị trí, đăng ký/đổi tên/gán thiết bị, xem lịch sử gán, lastSeen tự báo và chọn/bỏ thiết bị mặc định. Mở báo cáo riêng từng deviceId; trang Tiến bộ có nút dùng thiết bị mặc định, không tự cộng giờ nhiều máy. Cần config-service mới và migration V5; đã kiểm local/mock, chưa nghiệm thu stack thật.
+
 Bước 12/A2, nhánh `feat/notification-policy`: cuối trang Cấu hình có giờ yên lặng (giờ Việt Nam, hỗ trợ qua nửa đêm), tập trung 15–120 phút, giãn cách và kênh thông báo PC. Lưu chính sách có version/operationId, giữ bản đang sửa khi poll thấy server đổi; không coi lưu server là desktop đã áp dụng. Cần backend/desktop mới, kênh IoT có cấu hình riêng. Kiểm local/mock, chưa nghiệm thu runtime thật.
 
 Nhánh `feat/config-offline-history` (13/11/2026): **Cấu hình → Đồng bộ cấu hình** đối chiếu phiên bản server với xác nhận còn hiệu lực của từng desktop. Lưu thành công chưa đồng nghĩa desktop đã nạp; mất socket/hết hạn sẽ hiện chưa xác minh. Cần backend và desktop cùng hỗ trợ snapshot/ack. Đã kiểm build/lint và REST/Socket.IO giả lập, chưa nghiệm thu stack thật.
