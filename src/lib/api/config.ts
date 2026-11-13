@@ -16,6 +16,26 @@ export function useMyConfigSnapshot() {
 }
 export type ConfigDetails = { personal: ConfigValues; organization: ConfigValues; effective: ConfigValues }
 
+export type ConfigRecommendation = {
+  key: string
+  unit: string
+  suggestedValue: number | null
+  classification: 'SOURCE_GUIDANCE' | 'PRODUCT_DEFAULT' | 'NEEDS_REVIEW'
+  explanation: string
+  suggestedAction: string
+  sources: { title: string; url: string; verifiedOn: string }[]
+}
+export type ConfigRecommendations = { recommendationVersion: string; items: ConfigRecommendation[] }
+
+export function useConfigRecommendations() {
+  return useQuery({
+    queryKey: ['config', 'recommendations'],
+    queryFn: () => request<ConfigRecommendations>({ url: '/config/me/recommendations' }),
+    staleTime: 30 * 60_000,
+    retry: false,
+  })
+}
+
 export function useMyConfigDetails() {
   return useQuery({
     queryKey: DETAILS_QUERY_KEY,

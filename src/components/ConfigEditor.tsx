@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import type { ConfigValues } from '@/lib/api/config'
+import type { ConfigRecommendation, ConfigRecommendations, ConfigValues } from '@/lib/api/config'
 import { toApiError } from '@/lib/api/errors'
 import { buildBody, changedKeys, clearedBody, draftFromServer, stableKey, validateDraft, type Draft } from '@/lib/configForm'
 import { CONFIG_FIELDS, FIELD_BY_KEY, GROUPS, type ConfigField } from '@/lib/configFields'
@@ -19,6 +19,7 @@ export interface ConfigEditorProps {
   /** Chỉ các khóa thuộc phạm vi đang sửa, không dùng cấu hình đã gộp. */
   query: { data: ConfigValues | undefined; error: Error | null; isPending: boolean }
   inherited?: ConfigValues
+  recommendations?: { data: ConfigRecommendations | undefined; isPending: boolean; isError: boolean; refetch: () => unknown }
   /** mutation PUT thay toàn bộ */
   save: { mutate: (body: ConfigValues, options: { onSuccess: () => void; onError: (e: unknown) => void }) => void; isPending: boolean }
   /** khóa riêng máy không hiện nhưng phải gửi lại (cá nhân: hiệu chỉnh camera; tổ chức: không có) */
@@ -39,6 +40,7 @@ export function ConfigEditor({
   subtitle,
   query,
   inherited,
+  recommendations,
   save,
   preserveKeys,
   savedMessage,
@@ -157,6 +159,16 @@ export function ConfigEditor({
         </div>
       )}
 
+      {recommendations && (
+        <aside className="rounded-xl border bg-background p-4 text-sm space-y-2" aria-label="Căn cứ thời gian nhắc">
+          <p className="font-medium">Căn cứ thời gian nhắc</p>
+          <p className="text-muted-foreground">Gợi ý theo tài liệu giúp chọn lịch nhắc nghỉ, không xác định bao lâu sẽ gây bệnh. Bấm dùng gợi ý chỉ sửa bản nháp; cần bấm Lưu cấu hình để áp dụng.</p>
+          {recommendations.isPending ? <p role="status">Đang tải căn cứ…</p> : recommendations.isError ? (
+            <div role="status">Chưa tải được căn cứ. Bạn vẫn có thể sửa cấu hình. <Button type="button" variant="outline" className="min-h-11" onClick={() => void recommendations.refetch()}>Thử tải lại căn cứ</Button></div>
+          ) : <p className="text-xs text-muted-foreground">Bản căn cứ {recommendations.data?.recommendationVersion}</p>}
+        </aside>
+      )}
+
       {query.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-40 w-full rounded-xl" />
@@ -213,6 +225,8 @@ export function ConfigEditor({
                         error={errors[f.key]}
                         onChange={(v) => edit(f.key, v)}
                         onReset={() => resetField(f.key)}
+                        recommendation={recommendations?.isError ? undefined : recommendations?.data?.items.find(r => r.key === f.key)}
+                        recommendationDisabled={save.isPending || conflict}
                       />
                     ))}
                   </div>
@@ -294,6 +308,8 @@ function Field({
   error,
   onChange,
   onReset,
+  recommendation,
+  recommendationDisabled,
 }: {
   field: ConfigField
   /** undefined = Mặc định */
@@ -302,6 +318,8 @@ function Field({
   error: string | undefined
   onChange: (value: string | boolean) => void
   onReset: () => void
+  recommendation?: ConfigRecommendation
+  recommendationDisabled?: boolean
 }) {
   const id = `cfg-${f.key}`
   const custom = value !== undefined
@@ -361,11 +379,38 @@ function Field({
       <p id={`${id}-hint`} className="text-xs text-muted-foreground">
         {f.hint}
       </p>
+      {recommendation && <RecommendationDetails item={recommendation} field={f} onApply={onChange} disabled={recommendationDisabled} />}
       {error && (
         <p id={`${id}-error`} role="alert" className="text-sm text-destructive">
           {error}
         </p>
       )}
     </div>
+  )
+}
+
+function RecommendationDetails({ item, field, onApply, disabled }: {
+  item: ConfigRecommendation; field: ConfigField; onApply: (value: string) => void; disabled?: boolean
+}) {
+  const sources = item.sources.filter(source => {
+    try { return new URL(source.url).protocol === 'https:' && !!source.verifiedOn } catch { return false }
+  })
+  const value = item.suggestedValue
+  const applicable = item.classification === 'SOURCE_GUIDANCE' && sources.length > 0 &&
+    typeof value === 'number' && Number.isFinite(value) &&
+    (field.min === undefined || value >= field.min) && (field.max === undefined || value <= field.max) &&
+    (field.kind !== 'integer' || Number.isInteger(value)) && field.unit === item.unit
+  const label = item.classification === 'SOURCE_GUIDANCE' ? 'Gợi ý theo tài liệu' :
+    item.classification === 'PRODUCT_DEFAULT' ? 'Mặc định ứng dụng' : 'Cần rà soát nguồn'
+  return (
+    <details className="rounded-md border px-3 text-xs text-muted-foreground">
+      <summary className="min-h-11 cursor-pointer py-3 font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">{label}{applicable ? `: ${value} ${item.unit}` : ''}</summary>
+      <div className="space-y-2 pb-3 leading-relaxed">
+        <p>{item.explanation}</p>
+        <p>{item.suggestedAction}</p>
+        {sources.map(source => <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer" className="block min-h-11 py-3 text-primary underline underline-offset-4">{source.title} · Đối chiếu {source.verifiedOn}</a>)}
+        {applicable && <Button type="button" variant="outline" className="min-h-11" disabled={disabled} onClick={() => onApply(String(value))}>Dùng gợi ý cho {field.label.toLowerCase()}</Button>}
+      </div>
+    </details>
   )
 }
