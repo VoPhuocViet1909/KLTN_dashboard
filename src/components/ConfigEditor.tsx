@@ -400,7 +400,7 @@ function RecommendationDetails({ item, field, onApply, disabled }: {
     typeof value === 'number' && Number.isFinite(value) &&
     (field.min === undefined || value >= field.min) && (field.max === undefined || value <= field.max) &&
     (field.kind !== 'integer' || Number.isInteger(value)) && field.unit === item.unit
-  const label = item.classification === 'SOURCE_GUIDANCE' ? 'Gợi ý theo tài liệu' :
+  const label = item.classification === 'SOURCE_GUIDANCE' && sources.length > 0 ? 'Gợi ý theo tài liệu' :
     item.classification === 'PRODUCT_DEFAULT' ? 'Mặc định ứng dụng' : 'Cần rà soát nguồn'
   return (
     <details className="rounded-md border px-3 text-xs text-muted-foreground">
