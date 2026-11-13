@@ -4,6 +4,7 @@ import { PRESERVED_KEYS } from '@/lib/configFields'
 import { useAuth } from '@/auth/context'
 import { useDeviceObservations } from '@/realtime/observations'
 import { configAcknowledgementText } from '@/realtime/observation'
+import { NotificationPolicyEditor } from '@/components/NotificationPolicyEditor'
 
 /** Chỉ sửa khóa cá nhân; khóa không gửi tiếp tục kế thừa tổ chức. */
 export function SettingsPage() {
@@ -31,6 +32,7 @@ export function SettingsPage() {
       clearedMessage="Đã xóa mọi tùy chỉnh"
       clearDescription="Các tùy chỉnh sẽ quay về cấu hình tổ chức hoặc mặc định của ứng dụng. Cấu hình hiệu chỉnh camera được giữ nguyên."
     />
+    <NotificationPolicyEditor />
     </div>
   )
 }
