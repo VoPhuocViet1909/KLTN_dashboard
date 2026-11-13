@@ -4,6 +4,7 @@ import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { HabitHeatmap } from '@/components/charts/HabitHeatmap'
 import { ScoreTrend } from '@/components/charts/ScoreTrend'
 import { DepartmentComparison } from '@/components/DepartmentComparison'
+import { HistoricalDepartmentReport } from '@/components/HistoricalDepartmentReport'
 import { Fact } from '@/components/Fact'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { PagedTable } from '@/components/PagedTable'
@@ -158,7 +159,7 @@ function OrgOverview({ orgId }: { orgId: string }) {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-medium">So sánh phòng ban</h2>
+        <h2 className="font-medium">Đối chiếu theo phòng ban hiện tại</h2>
         <div className="rounded-xl border bg-background p-6">
           <DepartmentComparison
             members={members.data}
@@ -169,6 +170,8 @@ function OrgOverview({ orgId }: { orgId: string }) {
           />
         </div>
       </section>
+
+      <HistoricalDepartmentReport departments={departments.data} />
 
       <section className="space-y-3">
         <h2 className="font-medium">Ai đang ngồi sai lúc này</h2>
