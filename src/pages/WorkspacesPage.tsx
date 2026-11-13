@@ -63,7 +63,7 @@ export function WorkspacesPage() {
     </section>
     <section className="rounded-xl border bg-card p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Thiết bị đã đăng ký</h2><Button className="min-h-11" disabled={busy || error || !devices.data} onClick={() => { setDevice({ deviceKey: crypto.randomUUID(), deviceId: '', name: '', workspaceId: null, status: 'ACTIVE', version: 0 }); setWorkspace(null) }}>Thêm thiết bị</Button></div>
-      <p className="text-sm text-muted-foreground">Mã thiết bị lấy từ ứng dụng desktop. Đăng ký là khai báo của tài khoản, không xác minh phần cứng hoặc cấp quyền xem camera người khác. Lần thấy cuối là heartbeat tự báo, không chứng minh có người trước camera.</p>
+      <p className="text-sm text-muted-foreground">Sao chép mã từ ứng dụng desktop để đặt tên và gán vị trí cho máy đang dùng. Lần thấy cuối do desktop báo kết nối, chưa xác nhận camera đang có hình.</p>
       {device && <form className="space-y-3 rounded-lg border p-4" onSubmit={submitDevice}>
         {device.deviceId && !validDeviceId && <p role="alert" className="text-sm text-destructive">Mã thiết bị chỉ gồm chữ, số, dấu gạch dưới hoặc gạch ngang; tối đa 128 ký tự.</p>}
         <label className="flex flex-col gap-2 text-sm">Tên thiết bị<Input className="min-h-11" required maxLength={80} value={device.name ?? ''} onChange={event => setDevice({ ...device, name: event.target.value })} disabled={busy} /></label>
