@@ -21,6 +21,15 @@ const timestamps = ['lastAttemptAt', 'lastAcceptedAt', 'oldestPendingAt'] as con
 const durations = ['lastAttemptMs', 'configFetchApplyMs'] as const
 const fields = new Set(['version', 'deliveryState', 'lastFailureCode', ...counts, ...timestamps, ...durations])
 
+/** Gateway/Socket.IO bỏ các trường null khi serialize (thực tế E2E 22/11/2026: thiếu oldestPendingAt, lastFailureCode).
+ * Khôi phục null cho đúng các trường cho phép null, không đụng gì khác: bộ kiểm tra bên dưới vẫn chặt như cũ. */
+export function restoreOmittedNulls(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const out: Record<string, unknown> = { ...value as Record<string, unknown> }
+  for (const k of [...timestamps, ...durations, 'lastFailureCode']) if (!(k in out)) out[k] = null
+  return out
+}
+
 export function validDiagnostics(value: unknown, receivedAt: number): value is DeviceDiagnostics {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const v = value as DeviceDiagnostics
