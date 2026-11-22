@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { validDiagnostics } from '../src/realtime/diagnostics.ts'
-import { validObservation, observedDevice } from '../src/realtime/observation.ts'
+import { validObservation, observedDevice, restoreObservation } from '../src/realtime/observation.ts'
 
 const now = Date.parse('2026-11-14T00:00:00Z')
 const data = { version: 1, deliveryState: 'RETRYING', queued: 2, pending: 5, retrying: 3, dead: 1, acceptedSinceStart: 10,
@@ -23,4 +23,10 @@ assert(!observedDevice(observation, now, false).diagnosticsFresh)
 assert(!observedDevice({ ...observation, state: 'OFFLINE', reason: 'SESSION_STOPPED' }, now, true).diagnosticsFresh)
 const legacy = { ...observation }; delete legacy.diagnostics
 assert(validObservation(legacy)); assert.equal(observedDevice(legacy, now, true).diagnostics, undefined)
+// Transport bỏ trường null: gói thật từ backend thiếu oldestPendingAt/lastFailureCode (E2E 22/11/2026)
+const stripped = { ...observation, diagnostics: { ...data, lastAcceptedAt: null, oldestPendingAt: undefined, lastFailureCode: undefined, configFetchApplyMs: 5 } }
+delete stripped.diagnostics.oldestPendingAt; delete stripped.diagnostics.lastFailureCode
+assert(!validObservation(stripped)); assert(validObservation(restoreObservation(stripped)))
+assert(validObservation(restoreObservation({ ...observation, diagnostics: undefined, config: { version: 1, revision: 'a'.repeat(64), state: 'REJECTED' } })))
+assert(!validObservation(restoreObservation({ ...stripped, diagnostics: { ...stripped.diagnostics, url: 'https://x.invalid' } })))
 console.log('PASS: bounded safe diagnostics, unknown vs zero, legacy compatibility and expiry/disconnect/stop freshness')

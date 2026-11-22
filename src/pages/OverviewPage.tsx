@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { sumAlerts, useMySummary, useMyTimeseries } from '@/lib/api/stats'
 import { alertLabel } from '@/lib/labels'
-import { formatDateTime } from '@/lib/time'
+import { formatDateTime, formatMinutes } from '@/lib/time'
 import { useDeviceObservations } from '@/realtime/observations'
 import { plumbState } from '@/realtime/observation'
 
@@ -89,7 +89,7 @@ export function OverviewPage() {
               <dl className="grid flex-1 grid-cols-1 gap-4 text-sm sm:grid-cols-3">
                 <Fact label="Thời gian ngồi sai" value={badShare === null ? '—' : `${badShare}%`} hint={`${Math.round(s.badMinutes)} / ${Math.round(s.presenceMinutes)} phút`} />
                 <Fact label="Cảnh báo" value={String(sumAlerts(s.alerts))} hint={topAlert ? `nhiều nhất: ${alertLabel(topAlert[0])}` : undefined} />
-                <Fact label="Thời gian có mặt" value={`${Math.round(s.presenceMinutes / 60)} giờ`} />
+                <Fact label="Thời gian có mặt" value={formatMinutes(s.presenceMinutes)} />
               </dl>
             </div>
           ) : null}

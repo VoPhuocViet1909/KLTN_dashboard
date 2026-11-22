@@ -1,5 +1,5 @@
 import type { DeviceState } from './socket'
-import { validDiagnostics, type DeviceDiagnostics } from './diagnostics.ts'
+import { restoreOmittedNulls, validDiagnostics, type DeviceDiagnostics } from './diagnostics.ts'
 
 export const OBSERVATION_LABEL = {
   GOOD: 'Ngồi đúng', BAD: 'Đang ngồi sai', AWAY: 'Vắng mặt', OFFLINE: 'Không kết nối',
@@ -30,6 +30,16 @@ export function configAcknowledgementText(device: ObservedDevice, snapshot?: { v
   if (!snapshot) return `Desktop báo đã nạp v${device.config.version}; chưa đối chiếu được server.`
   return device.config.version === snapshot.version && device.config.revision === snapshot.revision
     ? `Đã nạp cấu hình hiện tại v${snapshot.version}.` : `Desktop đang dùng v${device.config.version}; chờ đồng bộ cấu hình hiện tại.`
+}
+
+/** Khôi phục các trường null bị transport bỏ (diagnostics.*, config.appliedAt) trước khi kiểm tra. */
+export function restoreObservation(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const v = { ...value as Record<string, unknown> }
+  if ('diagnostics' in v) v.diagnostics = restoreOmittedNulls(v.diagnostics)
+  const c = v.config
+  if (c && typeof c === 'object' && !Array.isArray(c) && !('appliedAt' in c)) v.config = { ...c, appliedAt: null }
+  return v
 }
 
 export function validObservation(value: unknown): value is DeviceObservation {

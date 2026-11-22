@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRealtimeConnected, useRealtimeEvent } from './hooks'
 import type { StatusEvent } from './socket'
-import { newerObservation, observedDevice, validObservation, type DeviceObservation, type ObservedDevice } from './observation'
+import { newerObservation, observedDevice, restoreObservation, validObservation, type DeviceObservation, type ObservedDevice } from './observation'
 
 export function useDeviceObservations(userId?: string, orgId?: string) {
   const identity = `${userId ?? ''}/${orgId ?? ''}`
@@ -12,7 +12,8 @@ export function useDeviceObservations(userId?: string, orgId?: string) {
     const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
   }, [])
-  useRealtimeEvent<unknown>('device-state', (event) => {
+  useRealtimeEvent<unknown>('device-state', (raw) => {
+    const event = restoreObservation(raw)
     if (!userId || !validObservation(event) || (!orgId && event.userId !== userId)) return
     setRecords((old) => {
       const data = old.identity === identity ? old : { identity, live: {}, legacy: {} }

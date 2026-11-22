@@ -25,7 +25,7 @@ import {
 import { sumAlerts, type HeatmapCell } from '@/lib/api/stats'
 import { displayUser, useUserDirectory } from '@/lib/api/users'
 import { alertEndLabel, alertLabel } from '@/lib/labels'
-import { formatDateTime, formatDuration } from '@/lib/time'
+import { formatDateTime, formatDuration, formatMinutes } from '@/lib/time'
 import { useDeviceObservations } from '@/realtime/observations'
 import type { ObservationState } from '@/realtime/observation'
 
@@ -115,7 +115,7 @@ function OrgOverview({ orgId }: { orgId: string }) {
                 value={String(sumAlerts(s.alerts))}
                 hint={topAlert ? `nhiều nhất: ${alertLabel(topAlert[0])}` : undefined}
               />
-              <Fact label="Thời gian có mặt" value={`${Math.round(s.presenceMinutes / 60)} giờ`} />
+              <Fact label="Thời gian có mặt" value={formatMinutes(s.presenceMinutes)} />
             </dl>
           </div>
         ) : null}
