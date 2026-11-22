@@ -1,4 +1,4 @@
-import { Building2, Gauge, HeartPulse, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3, Menu } from 'lucide-react'
+import { Building2, Gauge, HeartPulse, ShieldAlert, LayoutDashboard, History, LogOut, Settings2, SlidersHorizontal, UsersRound, Network, Grid3x3, Menu } from 'lucide-react'
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
@@ -31,6 +31,7 @@ const NAV: NavGroup[] = [
       { to: '/', label: 'Tổng quan', icon: Gauge },
       { to: '/habits', label: 'Thói quen', icon: Grid3x3 },
       { to: '/progress', label: 'Theo dõi tiến bộ', icon: HeartPulse },
+      { to: '/health-risks', label: 'Nguy cơ sức khỏe', icon: ShieldAlert },
       { to: '/workspaces', label: 'Vị trí và thiết bị', icon: Building2 },
       { to: '/history', label: 'Lịch sử cảnh báo', icon: History },
       { to: '/settings', label: 'Cấu hình', icon: Settings2 },
@@ -44,6 +45,7 @@ const NAV: NavGroup[] = [
       { to: '/org', label: 'Tổng quan tổ chức', icon: LayoutDashboard },
       { to: '/org/users', label: 'Nhân viên', icon: UsersRound },
       { to: '/org/members', label: 'Sức khỏe nhân viên', icon: HeartPulse },
+      { to: '/org/health-risks', label: 'Nguy cơ sức khỏe', icon: ShieldAlert },
       { to: '/org/departments', label: 'Phòng ban', icon: Network },
       { to: '/org/settings', label: 'Cấu hình tổ chức', icon: SlidersHorizontal },
     ],
