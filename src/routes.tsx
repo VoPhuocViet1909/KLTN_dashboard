@@ -4,10 +4,12 @@ import { AppLayout } from '@/layouts/AppLayout'
 import { AdminOrganizationsPage } from '@/pages/AdminOrganizationsPage'
 import { AdminUsersPage } from '@/pages/AdminUsersPage'
 import { HabitsPage } from '@/pages/HabitsPage'
+import { HealthRisksPage } from '@/pages/HealthRisksPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForbiddenPage, NotFoundPage } from '@/pages/misc'
 import { OrgDepartmentsPage } from '@/pages/OrgDepartmentsPage'
+import { OrgHealthRisksPage } from '@/pages/OrgHealthRisksPage'
 import { OrgMembersPage } from '@/pages/OrgMembersPage'
 import { OrgOverviewPage } from '@/pages/OrgOverviewPage'
 import { OrgSettingsPage } from '@/pages/OrgSettingsPage'
@@ -31,6 +33,7 @@ export function AppRoutes() {
           <Route path="history" element={<HistoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="progress" element={<ProgressPage />} />
+          <Route path="health-risks" element={<HealthRisksPage />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="diagnostics" element={<DiagnosticsPage />} />
 
@@ -39,6 +42,7 @@ export function AppRoutes() {
             <Route path="org" element={<OrgOverviewPage />} />
             <Route path="org/users" element={<OrgUsersPage />} />
             <Route path="org/members" element={<OrgMembersPage />} />
+            <Route path="org/health-risks" element={<OrgHealthRisksPage />} />
             <Route path="org/departments" element={<OrgDepartmentsPage />} />
             <Route path="org/settings" element={<OrgSettingsPage />} />
           </Route>
