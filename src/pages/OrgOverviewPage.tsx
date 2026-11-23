@@ -6,6 +6,9 @@ import { ScoreTrend } from '@/components/charts/ScoreTrend'
 import { DepartmentComparison } from '@/components/DepartmentComparison'
 import { HistoricalDepartmentReport } from '@/components/HistoricalDepartmentReport'
 import { Fact } from '@/components/Fact'
+import { LiveCamera } from '@/components/LiveCamera'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { PagedTable } from '@/components/PagedTable'
 import { ObservationBadge } from '@/components/ObservationBadge'
@@ -45,6 +48,7 @@ export function OrgOverviewPage() {
 function OrgOverview({ orgId }: { orgId: string }) {
   const [days, setDays] = useState(7)
   const [page, setPage] = useState(0)
+  const [cameraOwner, setCameraOwner] = useState('')
   const summary = useOrgSummary(days)
   const alerts = useOrgAlerts(days, page)
   const series = useOrgTimeseries(days, 'day')
@@ -60,6 +64,8 @@ function OrgOverview({ orgId }: { orgId: string }) {
   // ORG_ADMIN tự ở room org:{orgId}; giữ trạng thái mới nhất theo máy từ lúc mở trang.
   const { user } = useAuth()
   const deviceList = useDeviceObservations(user?.id, orgId)
+  const cameraMembers = Object.values(directory.data ?? {}).filter(member => member.enabled && member.orgId === orgId)
+  const selectedCameraOwner = cameraMembers.find(member => member.id === cameraOwner)
   const bad = deviceList.filter((d) => d.state === 'BAD').sort((a, b) => b.ts.localeCompare(a.ts))
   const countOf = (state: ObservationState) => deviceList.filter((d) => d.state === state).length
 
@@ -89,6 +95,29 @@ function OrgOverview({ orgId }: { orgId: string }) {
           </TabsList>
         </Tabs>
       </div>
+
+      <section className="space-y-4 rounded-xl border bg-background p-6" aria-labelledby="org-live-camera-title">
+        <div className="space-y-1">
+          <h2 id="org-live-camera-title" className="font-medium">Camera trực tiếp</h2>
+          <p className="text-sm text-muted-foreground">Bạn chỉ xem được khi nhân viên bật chia sẻ với quản trị viên tổ chức trên ứng dụng desktop.</p>
+        </div>
+        <div className="max-w-sm space-y-2">
+          <Label htmlFor="org-camera-owner">Nhân viên</Label>
+          <Select value={selectedCameraOwner?.id ?? ''} onValueChange={setCameraOwner} disabled={!cameraMembers.length}>
+            <SelectTrigger id="org-camera-owner" className="min-h-11 w-full">
+              <SelectValue placeholder={directory.isPending ? 'Đang tải nhân viên…' : 'Chọn nhân viên'} />
+            </SelectTrigger>
+            <SelectContent>
+              {cameraMembers.map(member => <SelectItem key={member.id} value={member.id}>{nameOf(member.id)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {directory.isError && <p role="alert" className="text-sm text-destructive">Không tải được danh sách nhân viên.</p>}
+        </div>
+        {selectedCameraOwner && (
+          <LiveCamera key={selectedCameraOwner.id} userId={selectedCameraOwner.id} orgId={orgId}
+            devices={[...new Set(deviceList.filter(device => device.userId === selectedCameraOwner.id).map(device => device.deviceId))]} />
+        )}
+      </section>
 
       <section className="rounded-xl border bg-background p-6">
         {summary.isPending ? (

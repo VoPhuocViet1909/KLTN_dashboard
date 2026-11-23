@@ -7,7 +7,7 @@ import { watchCamera, type Camera } from '@/lib/liveCamera'
 
 const cameraLabels = { side: 'Camera hông', front: 'Camera trước' }
 
-function CameraFeed({ userId, deviceId, camera }: { userId: string; deviceId: string; camera: Camera }) {
+function CameraFeed({ userId, deviceId, camera, orgId }: { userId: string; deviceId: string; camera: Camera; orgId?: string }) {
   const [message, setMessage] = useState('Đang kết nối camera…')
   const video = useRef<HTMLVideoElement>(null)
 
@@ -17,11 +17,11 @@ function CameraFeed({ userId, deviceId, camera }: { userId: string; deviceId: st
     let stop: (() => void) | undefined
     queueMicrotask(() => {
       if (cancelled || !video.current) return
-      try { stop = watchCamera(video.current, userId, deviceId, camera, setMessage) }
+      try { stop = watchCamera(video.current, userId, deviceId, camera, setMessage, orgId) }
       catch (e) { setMessage(e instanceof Error ? e.message : 'Không mở được camera.') }
     })
     return () => { cancelled = true; stop?.() }
-  }, [deviceId, camera, userId])
+  }, [deviceId, camera, userId, orgId])
 
   return (
     <div className="min-w-0 space-y-2">
@@ -33,11 +33,11 @@ function CameraFeed({ userId, deviceId, camera }: { userId: string; deviceId: st
   )
 }
 
-export function LiveCamera({ userId, devices }: { userId: string; devices: string[] }) {
+export function LiveCamera({ userId, devices, orgId }: { userId: string; devices: string[]; orgId?: string }) {
   const [selected, setSelected] = useState('')
   const [manual, setManual] = useState(false)
   const [manualDevice, setManualDevice] = useState('')
-  const [camera, setCamera] = useState<Camera | 'both'>('side')
+  const [camera, setCamera] = useState<Camera | 'both'>(orgId ? 'both' : 'side')
   const [playing, setPlaying] = useState(false)
   const manualMode = manual || !devices.length
   const deviceId = playing ? selected : manualMode ? manualDevice.trim() : devices.includes(selected) ? selected : devices[0] ?? ''
@@ -45,11 +45,11 @@ export function LiveCamera({ userId, devices }: { userId: string; devices: strin
   const choices = playing && !devices.includes(selected) ? [selected, ...devices] : devices
 
   return (
-    <section className="space-y-4 rounded-xl border bg-background p-6" aria-labelledby="live-camera-title">
-      <div className="space-y-1">
+    <div role={orgId ? undefined : "region"} className={orgId ? 'space-y-4' : 'space-y-4 rounded-xl border bg-background p-6'} aria-labelledby={orgId ? undefined : 'live-camera-title'}>
+      {!orgId && <div className="space-y-1">
         <h2 id="live-camera-title" className="font-medium">Camera của bạn</h2>
         <p className="text-sm text-muted-foreground">Trên ứng dụng desktop, chọn một góc hoặc Cả hai camera rồi bấm Bật chia sẻ. Đăng nhập web cùng tài khoản, chọn thiết bị và bấm Xem camera. Không ghi hình.</p>
-      </div>
+      </div>}
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-1 space-y-2">
           <Label htmlFor={manualMode ? 'camera-device-manual' : 'camera-device'}>Thiết bị</Label>
@@ -82,10 +82,10 @@ export function LiveCamera({ userId, devices }: { userId: string; devices: strin
       {playing && (
         <div className={camera === 'both' ? 'grid gap-4 md:grid-cols-2' : ''}>
           {(camera === 'both' ? (['side', 'front'] as const) : [camera]).map(angle => (
-            <CameraFeed key={angle} userId={userId} deviceId={deviceId} camera={angle} />
+            <CameraFeed key={angle} userId={userId} deviceId={deviceId} camera={angle} orgId={orgId} />
           ))}
         </div>
       )}
-    </section>
+    </div>
   )
 }
