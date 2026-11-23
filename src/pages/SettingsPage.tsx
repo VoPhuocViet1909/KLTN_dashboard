@@ -1,3 +1,4 @@
+import { PersonalExport } from "@/components/PersonalExport"
 import { LoginSessions } from "@/components/LoginSessions"
 import { ConfigEditor } from '@/components/ConfigEditor'
 import { useConfigRecommendations, useConfigRealtime, useMyConfigDetails, useMyConfigSnapshot, useSaveMyConfig } from '@/lib/api/config'
@@ -37,6 +38,7 @@ export function SettingsPage() {
     />
     <NotificationPolicyEditor />
     <LoginSessions />
+    {user && <PersonalExport key={user.id} owner={user.id} />}
     </div>
   )
 }
