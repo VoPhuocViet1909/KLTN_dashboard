@@ -86,6 +86,8 @@ try {
         body = { ...orgConfig, ...personalConfig }
       }
       else if (path.endsWith('/summary')) body = { meanScore: 84, badMinutes: 22, presenceMinutes: 180, alerts: { NECK_TRUNK: 3 } }
+      else if (path.endsWith('/users/audit')) body = { items: [{ id: 1, occurredAt: '2026-11-23T12:00:00Z',
+        actorId: 'actor-fixture', targetId: 'target-fixture', action: 'SET_ROLE' }], page: 0, size: 20, total: 1 }
       else if (path.includes('/alerts/') || path.endsWith('/users')) body = { items: [], page: 0, size: 20, total: 0 }
       call('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(e => failures.push(e.message))
     }
@@ -178,6 +180,11 @@ try {
           {userId, deviceId:'same-device', state:'BAD', ts:new Date().toISOString()}]);
       })`)
       await waitFor('document.body.textContent.includes("2 máy")')
+    }
+    if (role !== 'USER') {
+      await click(role === 'ORG_ADMIN' ? 'a[href="/org/users"]' : 'a[href="/admin/users"]')
+      await waitFor(`[...document.querySelectorAll('section')].some(el => el.getAttribute('aria-label') === 'Nhật ký quản trị tài khoản' && el.textContent.includes('Đặt vai trò'))`)
+      await click('a[href="/"]')
     }
   }
   // API fixtures + fake WebRTC: ownership filtering, lifecycle/renewal and media token isolation.
