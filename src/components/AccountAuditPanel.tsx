@@ -33,7 +33,7 @@ export function AccountAuditPanel({ viewerId }: { viewerId: string }) {
           <TableHead>Thao tác</TableHead><TableHead>Tài khoản liên quan</TableHead></TableRow>}
         row={item => <TableRow key={item.id}><TableCell>{formatDateTime(item.occurredAt)}</TableCell>
           <TableCell title={item.actorId}>{displayUser(directory.data, item.actorId)}</TableCell>
-          <TableCell>{labels[item.action]}</TableCell>
+          <TableCell>{labels[item.action]}{item.resultValue && <span className="block text-sm text-muted-foreground">{item.action === 'SET_STATUS' ? (item.resultValue === 'true' ? 'Đang hoạt động' : 'Đã khóa') : item.resultValue}</span>}</TableCell>
           <TableCell title={item.targetId}>{displayUser(directory.data, item.targetId)}</TableCell></TableRow>} />
     </section>
   )

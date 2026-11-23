@@ -1,4 +1,5 @@
 import { useAuth } from '@/auth/context'
+import { ConfigAudit } from '@/components/OrganizationAudit'
 import { ConfigEditor } from '@/components/ConfigEditor'
 import { NoOrgNotice } from '@/components/NoOrgNotice'
 import { useOrgConfig, useSaveOrgConfig } from '@/lib/api/config'
@@ -6,7 +7,7 @@ import { useOrgConfig, useSaveOrgConfig } from '@/lib/api/config'
 export function OrgSettingsPage() {
   const { user } = useAuth()
   if (!user?.orgId) return <NoOrgNotice title="Cấu hình tổ chức" />
-  return <OrgSettings />
+  return <div className="space-y-8"><OrgSettings /><ConfigAudit key={user.orgId} org={user.orgId} /></div>
 }
 
 /**
