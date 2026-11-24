@@ -31,6 +31,9 @@ try {
     pending.set(key, { ok, fail, timer })
     socket.send(JSON.stringify({ id: key, method, params }))
   })
+  const statAnswersOnly = process.env.CHECK_STAT_ANSWERS === '1'
+  const statQueries = []
+  let statsMode = "normal"
   let role = 'USER'
   let cameraMode = 'normal'
   const mediaRequests = []
@@ -84,6 +87,24 @@ try {
       else if (path.endsWith('/config/me')) {
         if (request.method === 'PUT') { personalConfig = JSON.parse(request.postData); configWrites.push(personalConfig) }
         body = { ...orgConfig, ...personalConfig }
+      }
+      else if (statAnswersOnly && path.endsWith('/heatmap')) body = [
+        { weekday: 1, hour: 9, meanScore: 51 }, { weekday: 2, hour: 10, meanScore: 80 },
+        { weekday: 3, hour: 9, meanScore: null },
+      ]
+      else if (statAnswersOnly && path.endsWith('/summary')) {
+        const params = new URL(request.url).searchParams
+        const from = Date.parse(params.get('from'))
+        const to = Date.parse(params.get('to'))
+        statQueries.push({ from, to })
+        if (statsMode === 'error') {
+          call('Fetch.fulfillRequest', { requestId, responseCode: 503,
+            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }],
+            body: Buffer.from('{"code":"STATS_UNAVAILABLE","message":"Fixture"}').toString('base64') }).catch(e => failures.push(e.message))
+          return
+        }
+        if (statsMode === 'empty') body = { meanScore: null, badMinutes: 0, presenceMinutes: 0, alerts: {} }
+        else body = { meanScore: 84, badMinutes: 22, presenceMinutes: 180, alerts: { NECK_TRUNK: 3, SHOULDER_TILT: 3 } }
       }
       else if (path.endsWith('/summary')) body = { meanScore: 84, badMinutes: 22, presenceMinutes: 180, alerts: { NECK_TRUNK: 3 } }
       else if (path.endsWith('/users/audit')) body = { items: [{ id: 1, occurredAt: '2026-11-23T12:00:00Z',
@@ -167,6 +188,39 @@ try {
       }
       if (role === 'USER') await shot('web-overview-' + width)
     }
+    if (statAnswersOnly) {
+      await click('a[href="/habits"]')
+      await waitFor('document.body.innerText.includes("Hỏi về số liệu của tôi")')
+      const select = index => js(`document.querySelectorAll('section[aria-labelledby] button')[${index}].click()`)
+      const has = label => waitFor(`document.querySelector('[aria-live="polite"]')?.textContent.includes(${JSON.stringify(label)})`)
+      const before = statQueries.length
+      await select(0)
+      await has('12,2% so với 12,2%')
+      const [current, previous] = statQueries.slice(before).sort((a, b) => b.to - a.to)
+      assert.equal(current.from, previous.to)
+      assert.equal(current.to - current.from, 7 * 86400000)
+      assert.equal(previous.to - previous.from, 7 * 86400000)
+      await select(1)
+      await has('180 phút')
+      await select(2)
+      await has('Cúi cổ, gù lưng, Lệch vai')
+      await select(3)
+      await has('Thứ Hai 09:00–10:00')
+      statsMode = 'empty'
+      await select(0)
+      await has('Cần có thời gian hiện diện')
+      statsMode = 'error'
+      await select(1)
+      await has('Chưa tải được thống kê cá nhân')
+      statsMode = 'normal'
+      await click('section[aria-labelledby] [aria-live] button')
+      await has('180 phút')
+      await call('Emulation.setDeviceMetricsOverride', { width: 375, height: 800, screenWidth: 375, screenHeight: 800, deviceScaleFactor: 1, mobile: false })
+      await waitFor('document.documentElement.scrollWidth <= innerWidth')
+      assert.deepEqual(failures, [])
+      console.log('PASS four statistics answers, consecutive intervals, alert ties and 375px layout')
+      break
+    }
     if (role === 'ORG_ADMIN') {
       await js(`import(performance.getEntriesByType('resource').find(r => r.name.includes('/src/realtime/socket.')).name).then(({getSocket}) => {
         for (const userId of ['ui-test','someone-else']) getSocket().emitEvent(['status',
@@ -187,6 +241,7 @@ try {
       await click('a[href="/"]')
     }
   }
+  if (!statAnswersOnly) {
   // API fixtures + fake WebRTC: ownership filtering, lifecycle/renewal and media token isolation.
   await js(`import(performance.getEntriesByType('resource').find(r => r.name.includes('/src/realtime/socket.')).name).then(({getSocket}) => {
     getSocket().emitEvent(['status', {userId:'someone-else', deviceId:'foreign', state:'BAD', ts:new Date().toISOString()}]);
@@ -264,6 +319,7 @@ try {
   await waitFor('document.getElementById("cfg-alert_sec").value === "16"')
   assert.deepEqual(failures, [], 'Browser runtime errors')
   console.log('PASS: mock UI 3 roles/4 viewports; camera ownership/renewal/cleanup/token isolation; config inheritance/save/reset/null/calibration and realtime conflicts')
+  }
 } finally {
   socket?.close()
   edge.kill()

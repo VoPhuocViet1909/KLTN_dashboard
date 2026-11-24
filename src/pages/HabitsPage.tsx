@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { StatAnswers } from "@/components/StatAnswers"
 import { HabitHeatmap } from '@/components/charts/HabitHeatmap'
 import { hourRange, WEEKDAY_LABEL } from '@/components/charts/heatmapScale'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -36,6 +37,8 @@ export function HabitsPage() {
           </TabsList>
         </Tabs>
       </div>
+
+      <StatAnswers cells={cells} weeks={weeks} heatmapPending={heatmap.isPending} heatmapError={heatmap.error} />
 
       <section className="rounded-xl border bg-background p-6">
         {heatmap.isPending ? (
