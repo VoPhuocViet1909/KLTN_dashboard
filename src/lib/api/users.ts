@@ -28,6 +28,7 @@ interface AuditEntry {
   actorId: string
   targetId: string
   orgId: string | null
+  resultValue?: string | null
   action: 'CREATE' | 'SET_ROLE' | 'SET_DEPARTMENT' | 'SET_STATUS'
 }
 

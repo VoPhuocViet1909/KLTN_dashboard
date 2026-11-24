@@ -95,6 +95,7 @@ export function useSaveOrgConfig() {
     mutationFn: (body: ConfigValues) => request<ConfigValues>({ method: 'PUT', url: '/config/org', data: body }),
     onSuccess: (saved) => {
       qc.setQueryData(ORG_CONFIG_QUERY_KEY, saved)
+      void qc.invalidateQueries({ queryKey: [...ORG_CONFIG_QUERY_KEY, "audit"] })
       void qc.invalidateQueries({ queryKey: CONFIG_QUERY_KEY })
     },
   })
