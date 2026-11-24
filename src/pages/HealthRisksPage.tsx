@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useMyHealthRisks, type HealthRisk, type Indicator, type Period } from '@/lib/api/insights'
+import { useMyHealthRisks, type ClassBreakdown, type HealthRisk, type Indicator, type Period } from '@/lib/api/insights'
 import {
   barPercent, citation, DISCLAIMER, EVIDENCE_LABEL, formatIndicator, formatThreshold, LEVEL_LABEL, markerPercent,
   noteLabel, sortRisks, sourceHref,
 } from '@/lib/healthRisk'
+import { CLASS_COLOR, isPostureClass } from '@/lib/postureClass'
 import { formatDateTime } from '@/lib/time'
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -63,6 +64,47 @@ function IndicatorRow({ indicator }: { indicator: Indicator }) {
   )
 }
 
+/** Lớp tư thế nào đóng góp nhiều nhất vào thời gian ngồi sai; chỉ hiện khi Desktop gửi lớp. */
+function ClassContribution({ breakdown }: { breakdown: ClassBreakdown }) {
+  if (!breakdown.available || breakdown.classes.length === 0) {
+    return (
+      <section aria-label="Lớp tư thế đóng góp">
+        <h3 className="mb-1 text-sm font-medium">Lớp tư thế đóng góp</h3>
+        <p className="text-xs text-muted-foreground">
+          Chưa đủ dữ liệu lớp tư thế trong kỳ này (cần Desktop App bản mới); mức nguy cơ được tính từ các chỉ số khác.
+        </p>
+      </section>
+    )
+  }
+  const top = breakdown.top
+  return (
+    <section aria-label="Lớp tư thế đóng góp">
+      <h3 className="mb-1 text-sm font-medium">Lớp tư thế đóng góp</h3>
+      <p className="mb-2 text-sm">
+        {top ? <>Nhiều nhất: <strong className="font-medium">{top.label}</strong> ({Math.round(top.share * 100)}% thời gian có mặt).</> : 'Không có thời gian ngồi sai theo lớp trong kỳ này.'}
+      </p>
+      <ul className="space-y-1.5 text-sm">
+        {breakdown.classes.map((c) => (
+          <li key={c.posture} className="grid grid-cols-[minmax(9rem,12rem)_1fr] items-center gap-3">
+            <span className="truncate text-muted-foreground">{c.label}</span>
+            <span className="flex items-center gap-2">
+              <span
+                className="h-2.5 rounded-r-[4px] border border-border"
+                style={{ width: `${Math.max(c.share * 85, 0.5)}%`, minWidth: 4, background: isPostureClass(c.posture) ? CLASS_COLOR[c.posture] : 'var(--chart-1)' }}
+              />
+              <span className="tabular shrink-0 font-medium">{Math.round(c.share * 100)}%</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{c.usedInRules ? 'có nguồn, dùng để tính mức' : 'chỉ hiển thị'}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Chỉ lớp có nguồn nghiên cứu riêng mới được dùng để tính mức nguy cơ; các lớp còn lại chỉ cho biết bạn ngồi sai theo kiểu nào.
+      </p>
+    </section>
+  )
+}
+
 function RiskCard({ risk }: { risk: HealthRisk }) {
   const insufficient = risk.level === 'INSUFFICIENT_DATA'
   return (
@@ -90,6 +132,8 @@ function RiskCard({ risk }: { risk: HealthRisk }) {
           </p>
         </section>
       )}
+
+      {!insufficient && risk.postureClasses && <ClassContribution breakdown={risk.postureClasses} />}
 
       {!insufficient && risk.advice.length > 0 && (
         <section aria-label="Lời khuyên">

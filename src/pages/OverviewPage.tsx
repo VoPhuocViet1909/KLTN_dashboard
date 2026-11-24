@@ -5,6 +5,7 @@ import { AlertBreakdown } from '@/components/charts/AlertBreakdown'
 import { ScoreTrend } from '@/components/charts/ScoreTrend'
 import { Fact } from '@/components/Fact'
 import { PlumbLine } from '@/components/PlumbLine'
+import { PostureClassSection } from '@/components/PostureClassSection'
 import { ObservationBadge } from '@/components/ObservationBadge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -112,6 +113,8 @@ export function OverviewPage() {
           )}
         </div>
       </section>
+
+      <PostureClassSection />
 
       <section className="space-y-3">
         <h2 className="font-medium">Cảnh báo theo loại</h2>
