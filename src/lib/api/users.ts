@@ -22,6 +22,23 @@ export const USERS_PAGE_SIZE = 20
 /** Gốc khóa truy vấn: invalidate khóa này là làm mới mọi danh sách người dùng. */
 const USERS_KEY = ['users'] as const
 
+interface AuditEntry {
+  id: number
+  occurredAt: string
+  actorId: string
+  targetId: string
+  orgId: string | null
+  resultValue?: string | null
+  action: 'CREATE' | 'SET_ROLE' | 'SET_DEPARTMENT' | 'SET_STATUS'
+}
+
+export function useAccountAudit(viewerId: string, page: number, action?: string) {
+  return useQuery({
+    queryKey: [...USERS_KEY, 'audit', viewerId, page, action ?? null],
+    queryFn: () => request<Paged<AuditEntry>>({ url: '/users/audit', params: { page, size: USERS_PAGE_SIZE, action } }),
+  })
+}
+
 /** `departmentId`: chỉ lấy thành viên của phòng ban đó (backend lọc, tổng `total` cũng theo bộ lọc). */
 export function useUsers(page: number, enabled = true, departmentId?: string) {
   return useQuery({

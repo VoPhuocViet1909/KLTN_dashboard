@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { CatalogAudit } from '@/components/OrganizationAudit'
+import { AccountAuditPanel } from '@/components/AccountAuditPanel'
 import { PagedTable } from '@/components/PagedTable'
 import { DepartmentHistoryPanel } from '@/components/DepartmentHistoryPanel'
 import { Badge } from '@/components/ui/badge'
@@ -297,6 +299,8 @@ export function UsersManager({
         }}
       />
 
+      <AccountAuditPanel key={selfId} viewerId={selfId} />
+      <CatalogAudit key={scope + selfId} viewer={selfId} />
       <Dialog open={historyTarget !== null} onOpenChange={open => !open && setHistoryTarget(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader><DialogTitle>Lịch sử phòng ban của {historyTarget?.name || historyTarget?.email}</DialogTitle><DialogDescription>Thời điểm hiệu lực được lưu trên máy chủ khi chuyển phòng ban.</DialogDescription></DialogHeader>

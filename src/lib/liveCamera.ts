@@ -5,7 +5,7 @@ type Grant = { token: string; expiresIn: number; path: string; action: string }
 
 /** Mỗi lượt xem sở hữu peer, timer và WHEP resource; cleanup dùng cả khi rời trang/đăng xuất. */
 export function watchCamera(video: HTMLVideoElement, userId: string, deviceId: string, camera: Camera,
-  status: (message: string) => void) {
+  status: (message: string) => void, orgId?: string) {
   const base = new URL(import.meta.env.VITE_MEDIA_BASE_URL || `${location.protocol}//${location.hostname}:8889`)
   if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password || base.search || base.hash
     || base.pathname !== '/' || (location.protocol === 'https:' && base.protocol !== 'https:')) {
@@ -26,7 +26,7 @@ export function watchCamera(video: HTMLVideoElement, userId: string, deviceId: s
   function retry(allowed = true) {
     disconnect()
     if (allowed && retries++ < 5) {
-      status('Đang chờ camera chia sẻ. Tự thử lại…')
+      status(orgId ? 'Đang chờ nhân viên chia sẻ camera. Tự thử lại…' : 'Đang chờ camera chia sẻ. Tự thử lại…')
       timer = setTimeout(connect, 3000)
     } else {
       status('Không xem được camera. Kiểm tra ứng dụng desktop đang chia sẻ và kết nối mạng; dừng rồi bấm Xem để thử lại.')
@@ -57,9 +57,15 @@ export function watchCamera(video: HTMLVideoElement, userId: string, deviceId: s
     status('Đang kết nối camera…')
     try {
       const grant = await request<Grant>({ method: 'POST', url: '/auth/media-token',
-        data: { deviceId, camera, action: 'read' }, signal: abort.signal })
+        data: { deviceId, camera, action: 'read', ...(orgId && { scope: 'organization', ownerUserId: userId }) },
+        signal: abort.signal })
       if (cancelled) return
-      if (grant.path !== `camera/${userId}/${deviceId}/${camera}` || grant.action !== 'read'
+      const anglePath = `${userId}/${deviceId}/${camera}`
+      const orgPrefix = `org-camera/${orgId}/${anglePath}/`
+      const pathMatches = orgId
+        ? grant.path.startsWith(orgPrefix) && /^[0-9a-f-]{36}$/.test(grant.path.slice(orgPrefix.length))
+        : grant.path === `camera/${anglePath}`
+      if (!pathMatches || grant.action !== 'read'
         || !grant.token || !Number.isFinite(grant.expiresIn) || grant.expiresIn <= 15) throw new Error()
       token = grant.token
       const renewAt = Date.now() + (grant.expiresIn - 15) * 1000

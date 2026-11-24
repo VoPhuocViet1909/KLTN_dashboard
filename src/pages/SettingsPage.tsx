@@ -1,3 +1,5 @@
+import { PersonalExport } from "@/components/PersonalExport"
+import { LoginSessions } from "@/components/LoginSessions"
 import { ConfigEditor } from '@/components/ConfigEditor'
 import { useConfigRecommendations, useConfigRealtime, useMyConfigDetails, useMyConfigSnapshot, useSaveMyConfig } from '@/lib/api/config'
 import { PRESERVED_KEYS } from '@/lib/configFields'
@@ -35,6 +37,8 @@ export function SettingsPage() {
       clearDescription="Các tùy chỉnh sẽ quay về cấu hình tổ chức hoặc mặc định của ứng dụng. Cấu hình hiệu chỉnh camera được giữ nguyên."
     />
     <NotificationPolicyEditor />
+    <LoginSessions />
+    {user && <PersonalExport key={user.id} owner={user.id} />}
     </div>
   )
 }
