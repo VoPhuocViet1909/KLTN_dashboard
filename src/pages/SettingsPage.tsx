@@ -12,7 +12,7 @@ import { NotificationPolicyEditor } from '@/components/NotificationPolicyEditor'
 export function SettingsPage() {
   useConfigRealtime()
   const query = useMyConfigDetails()
-  const save = useSaveMyConfig()
+  const save = useSaveMyConfig(query.data?.version)
   const recommendations = useConfigRecommendations()
   const snapshot = useMyConfigSnapshot()
   const { user } = useAuth()
@@ -29,6 +29,7 @@ export function SettingsPage() {
       subtitle="Áp dụng cho Desktop App trên mọi máy của bạn."
       query={{ ...query, data: query.data?.personal }}
       inherited={query.data?.organization}
+      version={query.data?.version}
       recommendations={recommendations}
       save={save}
       preserveKeys={PRESERVED_KEYS}

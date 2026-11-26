@@ -19,6 +19,7 @@ export interface ConfigEditorProps {
   /** Chỉ các khóa thuộc phạm vi đang sửa, không dùng cấu hình đã gộp. */
   query: { data: ConfigValues | undefined; error: Error | null; isPending: boolean }
   inherited?: ConfigValues
+  version?: number
   recommendations?: { data: ConfigRecommendations | undefined; isPending: boolean; isError: boolean; refetch: () => unknown }
   /** mutation PUT thay toàn bộ */
   save: { mutate: (body: ConfigValues, options: { onSuccess: () => void; onError: (e: unknown) => void }) => void; isPending: boolean }
@@ -40,6 +41,7 @@ export function ConfigEditor({
   subtitle,
   query,
   inherited,
+  version,
   recommendations,
   save,
   preserveKeys,
@@ -51,7 +53,7 @@ export function ConfigEditor({
   const server = query.data
 
   const baseline = useMemo(() => draftFromServer(server), [server])
-  const serverKey = useMemo(() => stableKey(server) + stableKey(inherited), [server, inherited])
+  const serverKey = useMemo(() => JSON.stringify(version) + stableKey(server) + stableKey(inherited), [version, server, inherited])
 
   // draft = null: form theo đúng server. Có draft: người dùng đang sửa; `draftBase` là bản server lúc bắt đầu sửa.
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -60,6 +62,7 @@ export function ConfigEditor({
   const [formError, setFormError] = useState<string | null>(null)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [clearBase, setClearBase] = useState<string | null>(null)
 
   const current = draft ?? baseline
   const changes = draft ? changedKeys(draft, baseline) : []
@@ -113,7 +116,9 @@ export function ConfigEditor({
         const err = toApiError(e)
         const mapped: Record<string, string> = {}
         let general: string | null = null
-        if (err.code === 'VALIDATION_FAILED' && Object.keys(err.fieldErrors).length > 0) {
+        if (err.code === 'RESOURCE_VERSION_CONFLICT') {
+          general = 'Cấu hình đã đổi ở nơi khác. Hãy tải bản mới trước khi lưu.'
+        } else if (err.code === 'VALIDATION_FAILED' && Object.keys(err.fieldErrors).length > 0) {
           for (const [field, message] of Object.entries(err.fieldErrors)) {
             const key = field.split('.').pop() ?? field
             if (key in FIELD_BY_KEY) mapped[key] = message
@@ -145,7 +150,7 @@ export function ConfigEditor({
           <h1 className="text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <Button variant="outline" size="sm" disabled={!hasCustom || save.isPending || !!query.error || conflict} onClick={() => setConfirmClear(true)}>
+        <Button variant="outline" size="sm" disabled={!hasCustom || save.isPending || !!query.error || conflict} onClick={() => { setClearBase(serverKey); setConfirmClear(true) }}>
           Xóa mọi tùy chỉnh
         </Button>
       </div>
@@ -267,12 +272,13 @@ export function ConfigEditor({
               {clearDescription}
             </DialogDescription>
           </DialogHeader>
+          {clearBase !== serverKey && <p role="alert" className="text-sm text-destructive">Cấu hình vừa đổi. Hãy đóng hộp thoại và xác nhận lại.</p>}
           {formError && !dirty && <p role="alert" className="text-sm text-destructive">Không xóa được: {formError}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmClear(false)} disabled={save.isPending}>
               Giữ lại
             </Button>
-            <Button variant="destructive" onClick={() => send(clearedBody(server, preserveKeys), clearedMessage)} disabled={save.isPending}>
+            <Button variant="destructive" onClick={() => send(clearedBody(server, preserveKeys), clearedMessage)} disabled={save.isPending || conflict || clearBase !== serverKey || !!query.error}>
               {save.isPending ? 'Đang xóa…' : 'Xóa mọi tùy chỉnh'}
             </Button>
           </DialogFooter>

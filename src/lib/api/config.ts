@@ -1,3 +1,4 @@
+import { ApiError } from '@/lib/api/errors'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRealtimeEvent } from '@/realtime/hooks'
 import { request } from './client'
@@ -14,7 +15,7 @@ export type ConfigSnapshot = { version: number; revision: string; effective: Con
 export function useMyConfigSnapshot() {
   return useQuery({ queryKey: SNAPSHOT_QUERY_KEY, queryFn: () => request<ConfigSnapshot>({ url: '/config/me/snapshot' }), refetchInterval: 30_000 })
 }
-export type ConfigDetails = { personal: ConfigValues; organization: ConfigValues; effective: ConfigValues }
+export type ConfigDetails = { version?: number; personal: ConfigValues; organization: ConfigValues; effective: ConfigValues }
 
 export type ConfigRecommendation = {
   key: string
@@ -51,10 +52,16 @@ export function useMyConfig() {
 }
 
 /** PUT thay TOÀN BỘ phần cá nhân: khóa không gửi = về mặc định, {} = xóa hết. Trả cấu hình hiệu lực mới. */
-export function useSaveMyConfig() {
+export function useSaveMyConfig(expectedVersion?: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: ConfigValues) => request<ConfigValues>({ method: 'PUT', url: '/config/me', data: body }),
+    mutationFn: (body: ConfigValues) =>
+      request<ConfigValues>({ method: 'PUT', url: '/config/me', params: { expectedVersion }, data: body }),
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 'RESOURCE_VERSION_CONFLICT') {
+        void qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
+      }
+    },
     onSuccess: async (effective) => {
       qc.setQueryData(CONFIG_QUERY_KEY, effective)
       await qc.invalidateQueries({ queryKey: DETAILS_QUERY_KEY })
